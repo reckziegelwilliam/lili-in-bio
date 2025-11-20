@@ -22,7 +22,6 @@ export function TechPeek({ readingMode, accentColor }: TechPeekProps) {
       >
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-semibold text-white flex items-center gap-2">
-            <span>🔍</span>
             <span>Transparent Tech Peek</span>
           </h2>
           <div className="text-white text-2xl transition-transform" style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0)' }}>
@@ -92,16 +91,16 @@ export function TechPeek({ readingMode, accentColor }: TechPeekProps) {
             <h3 className="text-lg font-semibold text-white text-green-300">What we deliberately DON'T do:</h3>
             <div className="space-y-2 text-white/80">
               <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
-                ✓ No third-party tracking pixels or cookies
+                [check] No third-party tracking pixels or cookies
               </div>
               <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
-                ✓ No fingerprinting or cross-site tracking
+                [check] No fingerprinting or cross-site tracking
               </div>
               <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
-                ✓ No selling or sharing your data
+                [check] No selling or sharing your data
               </div>
               <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
-                ✓ All storage is local (your device, your control)
+                [check] All storage is local (your device, your control)
               </div>
             </div>
           </div>
@@ -110,7 +109,7 @@ export function TechPeek({ readingMode, accentColor }: TechPeekProps) {
           <div className="space-y-3">
             <h3 className="text-lg font-semibold text-white">Tech stack:</h3>
             <div className="flex flex-wrap gap-2">
-              {['Next.js 14', 'TypeScript', 'Tailwind CSS', 'Framer Motion', 'OpenAI API'].map(
+              {['Next.js 14', 'TypeScript', 'Tailwind CSS', 'Framer Motion', 'OpenAI API', 'Resend'].map(
                 (tech) => (
                   <div
                     key={tech}
@@ -139,4 +138,3 @@ export function TechPeek({ readingMode, accentColor }: TechPeekProps) {
     </GlassCard>
   );
 }
-

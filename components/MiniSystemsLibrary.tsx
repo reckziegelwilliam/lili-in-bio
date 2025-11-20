@@ -12,8 +12,8 @@ interface MiniSystemsLibraryProps {
 const systems: MiniSystem[] = [
   {
     id: 'tooManyIdeas',
-    title: '🌊 Too many ideas, nothing shipped',
-    problem: 'Drowning in ideas but can't focus on finishing anything',
+    title: 'Too many ideas, nothing shipped',
+    problem: "Drowning in ideas but can't focus on finishing anything",
     system: {
       name: 'The 3-Max System',
       steps: [
@@ -21,13 +21,13 @@ const systems: MiniSystem[] = [
         'For each: Write down the absolute smallest version that would be "done"',
         'Ship the smallest version of one before starting the next',
       ],
-      outcome: 'You'll ship actual things instead of collecting ideas forever',
+      outcome: "You'll ship actual things instead of collecting ideas forever",
     },
     templateLink: '#',
   },
   {
     id: 'messyClients',
-    title: '📁 Clients/projects feel messy',
+    title: 'Clients/projects feel messy',
     problem: 'Every project is chaos with different tools and scattered info',
     system: {
       name: 'Single Source System',
@@ -36,13 +36,13 @@ const systems: MiniSystem[] = [
         'Four sections only: Active, Waiting, Done, Reference',
         'Update it before/after every interaction—no exceptions',
       ],
-      outcome: 'You'll know the status of anything in under 10 seconds',
+      outcome: "You'll know the status of anything in under 10 seconds",
     },
     templateLink: '#',
   },
   {
     id: 'toolOverload',
-    title: '⚙️ Lost in tools and workflows',
+    title: 'Lost in tools and workflows',
     problem: 'Spending more time organizing tools than doing actual work',
     system: {
       name: 'The Three-Tool Rule',
@@ -51,13 +51,13 @@ const systems: MiniSystem[] = [
         'Delete or archive everything else for 2 weeks',
         'If you miss something, add it back—but remove one of the 3',
       ],
-      outcome: 'You'll spend less time in "meta-work" and more time creating',
+      outcome: "You'll spend less time in 'meta-work' and more time creating",
     },
     templateLink: '#',
   },
   {
     id: 'cantStart',
-    title: '🚀 I want to start but keep stalling',
+    title: 'I want to start but keep stalling',
     problem: 'Stuck in planning mode, never actually beginning',
     system: {
       name: '30-Minute First Draft',
@@ -66,7 +66,7 @@ const systems: MiniSystem[] = [
         'Make the ugliest, most broken version of your thing that technically "exists"',
         'Share it with one person (or just yourself) immediately',
       ],
-      outcome: 'You'll break the "perfect start" paralysis and have something real to improve',
+      outcome: "You'll break the 'perfect start' paralysis and have something real to improve'",
     },
     templateLink: '#',
   },
@@ -159,4 +159,3 @@ export function MiniSystemsLibrary({ readingMode, accentColor }: MiniSystemsLibr
     </GlassCard>
   );
 }
-

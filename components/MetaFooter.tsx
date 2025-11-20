@@ -11,29 +11,29 @@ export function MetaFooter() {
             About this page
           </h3>
           <p className="text-white/70 text-sm max-w-2xl mx-auto leading-relaxed">
-            This isn't just a link-in-bio—it's a <strong className="text-white">product experiment</strong> and{' '}
-            <strong className="text-white">portfolio piece</strong>. It demonstrates context-aware UI design,
-            visitor-first product thinking, and privacy-conscious engineering.
+            This link-in-bio is also a <strong className="text-white">platform demo</strong>. It showcases
+            the kind of context-aware, visitor-first interfaces you can build with our creator's toolkit.
+            The full platform includes tools for text, color, headlines, ideas, and more.
           </p>
         </div>
         
         <div className="pt-4 border-t border-white/20 space-y-3">
           <div className="flex flex-wrap justify-center gap-4 text-sm text-white/60">
             <div className="flex items-center gap-2">
-              <span>💡</span>
+              <span>[&bull;]</span>
               <span>Context-aware UI</span>
             </div>
             <div className="flex items-center gap-2">
-              <span>🔧</span>
-              <span>Tiny useful tools</span>
+              <span>[&bull;]</span>
+              <span>Creator toolkit platform</span>
             </div>
             <div className="flex items-center gap-2">
-              <span>🔒</span>
+              <span>[&bull;]</span>
               <span>Privacy-first</span>
             </div>
             <div className="flex items-center gap-2">
-              <span>🎨</span>
-              <span>Unique per visitor</span>
+              <span>[&bull;]</span>
+              <span>Beta launching soon</span>
             </div>
           </div>
           
@@ -56,4 +56,3 @@ export function MetaFooter() {
     </GlassCard>
   );
 }
-
