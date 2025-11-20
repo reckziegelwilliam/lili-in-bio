@@ -40,6 +40,7 @@ Three implementations available (CSS, SVG, Canvas):
 - Node.js 18+ 
 - npm or yarn
 - OpenAI API key (for text upgrade feature)
+- Resend API key (for beta signup emails)
 
 ### Installation
 
@@ -59,15 +60,21 @@ npm install
 3. Set up environment variables:
 
 ```bash
-cp .env.local.example .env.local
+cp env.example .env.local
 ```
 
-Edit `.env.local` and add your API key:
+Edit `.env.local` and add your API keys:
 
 ```
 OPENAI_API_KEY=your_openai_api_key_here
+RESEND_API_KEY=re_your_resend_api_key_here
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
+
+**Important**: Before sending emails in production, you need to verify your domain in Resend:
+- Log into [Resend Dashboard](https://resend.com/domains)
+- Add your domain and configure DNS records
+- Update the `from` addresses in `app/api/beta-signup/route.ts` to use your verified domain
 
 4. Run the development server:
 
@@ -166,6 +173,7 @@ const TIME_BANDS: PaletteBand[] = [
 - **Styling**: Tailwind CSS
 - **Animations**: Framer Motion + CSS animations
 - **AI**: OpenAI GPT-4o-mini
+- **Email**: Resend
 - **Deployment**: Vercel (recommended)
 
 ## 🔒 Privacy & Ethics
@@ -214,8 +222,13 @@ Optimized for Instagram and TikTok in-app browsers:
 2. Import to Vercel
 3. Add environment variables:
    - `OPENAI_API_KEY`
+   - `RESEND_API_KEY`
    - `NEXT_PUBLIC_SITE_URL`
-4. Deploy!
+4. **Before going live**: 
+   - Verify your domain in Resend
+   - Update email `from` addresses in `app/api/beta-signup/route.ts`
+   - Update admin notification email address
+5. Deploy!
 
 ### Other Platforms
 
@@ -227,6 +240,39 @@ npm run start
 ```
 
 Deploy the `.next` folder to your hosting provider.
+
+## 📧 Email Configuration
+
+### Resend Setup
+
+1. Create a [Resend account](https://resend.com)
+2. Verify your sending domain:
+   - Add your domain in the Resend dashboard
+   - Add the provided DNS records to your domain
+   - Wait for verification (can take a few hours)
+3. Generate an API key
+4. Update `app/api/beta-signup/route.ts`:
+   - Change `from: 'Lili <onboarding@yourdomain.com>'` to use your verified domain
+   - Change `to: ['your-email@example.com']` in the admin notification
+
+### Email Templates
+
+The beta signup sends two emails:
+
+1. **Welcome Email** (to the visitor):
+   - Confirms their signup
+   - Lists platform tools
+   - Sets expectations
+
+2. **Admin Notification** (to you):
+   - Alerts you to new signups
+   - Includes name, email, timestamp
+
+Customize these templates in `app/api/beta-signup/route.ts`.
+
+### Testing Emails Locally
+
+During development, Resend provides a test domain. Check your Resend dashboard for delivered emails.
 
 ## 📝 License
 
