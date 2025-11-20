@@ -44,7 +44,7 @@ export function SaveForLater({ accentColor }: SaveForLaterProps) {
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-semibold text-white mb-2">
-            📌 Save for later
+            Save for later
           </h2>
           <p className="text-white/70 text-sm">
             On mobile or in an in-app browser? Here are easy ways to revisit this page when you're at a keyboard.
@@ -64,7 +64,7 @@ export function SaveForLater({ accentColor }: SaveForLaterProps) {
                   Paste it anywhere you'll see it later
                 </div>
               </div>
-              <div className="text-2xl">{copied ? '✓' : '🔗'}</div>
+              <div className="text-2xl">{copied ? '[copied]' : '[link]'}</div>
             </div>
           </button>
           
@@ -80,7 +80,7 @@ export function SaveForLater({ accentColor }: SaveForLaterProps) {
                   {emailSent ? 'Opening your email app...' : 'Send it to your inbox'}
                 </div>
               </div>
-              <div className="text-2xl">📧</div>
+              <div className="text-2xl">[mail]</div>
             </div>
           </button>
           
@@ -96,7 +96,7 @@ export function SaveForLater({ accentColor }: SaveForLaterProps) {
                   Better experience outside Instagram/TikTok
                 </div>
               </div>
-              <div className="text-2xl">🌐</div>
+              <div className="text-2xl">[browser]</div>
             </div>
           </button>
         </div>
@@ -104,4 +104,3 @@ export function SaveForLater({ accentColor }: SaveForLaterProps) {
     </GlassCard>
   );
 }
-

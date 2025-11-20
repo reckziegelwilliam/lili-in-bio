@@ -11,23 +11,20 @@ interface ReadingModeToggleProps {
   accentColor?: string;
 }
 
-const modes: { value: ReadingMode; label: string; emoji: string; description: string }[] = [
+const modes: { value: ReadingMode; label: string; description: string }[] = [
   {
     value: 'gist',
     label: 'Gist',
-    emoji: '⚡',
     description: 'Quick and to the point',
   },
   {
     value: 'nerd',
     label: 'Nerd',
-    emoji: '🤓',
     description: 'Technical details and depth',
   },
   {
     value: 'reflective',
     label: 'Reflective',
-    emoji: '💭',
     description: 'Thoughtful and exploratory',
   },
 ];
@@ -73,8 +70,7 @@ export function ReadingModeToggle({ currentMode, onChange, accentColor }: Readin
               }
             >
               <div className="text-center space-y-2">
-                <div className="text-3xl">{m.emoji}</div>
-                <div className="font-semibold text-white">{m.label}</div>
+                <div className="font-semibold text-white text-lg">{m.label}</div>
                 <div className="text-xs text-white/70">{m.description}</div>
               </div>
             </button>
@@ -84,4 +80,3 @@ export function ReadingModeToggle({ currentMode, onChange, accentColor }: Readin
     </GlassCard>
   );
 }
-
