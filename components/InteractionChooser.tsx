@@ -10,7 +10,6 @@ interface InteractionChooserProps {
 
 const interactions: {
   value: InteractionStyle;
-  emoji: string;
   title: string;
   description: string;
   cta: {
@@ -21,18 +20,16 @@ const interactions: {
 }[] = [
   {
     value: 'work',
-    emoji: '💼',
-    title: 'I might want to work with you',
-    description: 'Interested in collaborating on a project or hiring for work',
+    title: 'I want beta access to the platform',
+    description: "Get early access to the full creator's toolkit",
     cta: {
-      text: 'View services & availability',
-      href: '#work',
-      subtitle: 'Product design, development, consulting',
+      text: 'Join the beta',
+      href: '#beta-signup',
+      subtitle: 'Tools for color, headlines, ideas, clarity, and more',
     },
   },
   {
     value: 'question',
-    emoji: '💬',
     title: 'I just want to ask a question',
     description: 'Quick question, feedback, or just saying hi',
     cta: {
@@ -43,7 +40,6 @@ const interactions: {
   },
   {
     value: 'weird',
-    emoji: '🔬',
     title: 'Show me something weird',
     description: 'Experiments, side projects, and random explorations',
     cta: {
@@ -91,7 +87,6 @@ export function InteractionChooser({ accentColor }: InteractionChooserProps) {
               `}
             >
               <div className="flex items-start gap-4">
-                <div className="text-3xl flex-shrink-0">{interaction.emoji}</div>
                 <div className="flex-1">
                   <div className="font-semibold text-white text-lg mb-1">
                     {interaction.title}
@@ -107,7 +102,6 @@ export function InteractionChooser({ accentColor }: InteractionChooserProps) {
         {currentInteraction && (
           <div className="mt-6 p-6 rounded-xl bg-white/15 border border-white/30 space-y-4">
             <div className="text-center space-y-2">
-              <div className="text-4xl mb-2">{currentInteraction.emoji}</div>
               <p className="text-white/80 text-sm">{currentInteraction.cta.subtitle}</p>
             </div>
             
@@ -131,4 +125,3 @@ export function InteractionChooser({ accentColor }: InteractionChooserProps) {
     </GlassCard>
   );
 }
-
