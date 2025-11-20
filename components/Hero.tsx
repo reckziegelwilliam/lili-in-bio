@@ -11,18 +11,18 @@ interface HeroProps {
 const content = {
   gist: {
     title: "Hi, I'm Lili",
-    subtitle: "This page adapts to you",
-    description: "Not your typical link-in-bio. This is a tiny console that reads how you showed up and gives you something useful right away.",
+    subtitle: "Creator's toolkit platform",
+    description: "Not your typical link-in-bio. This page adapts to you and demonstrates the kind of thoughtful, context-aware interfaces I'm building for creators. Try the text tool below, then join the beta for the full suite.",
   },
   nerd: {
     title: "Welcome to the Visitor Console",
-    subtitle: "A context-aware interface experiment",
-    description: "This isn't just a list of links—it's a micro-product that uses ambient data (referrer, device, time, preferences) to create a personalized experience. No tracking, no cookies, just thoughtful adaptation. Built to demonstrate visitor-first product thinking.",
+    subtitle: "Demo of the creator's toolkit platform",
+    description: "This isn't just a list of links—it's a live demo of context-aware UI. The page reads ambient data (referrer, device, time, preferences) to adapt itself. The text upgrade tool you'll see below is one of 10+ tools in the full platform. No tracking, no cookies, just thoughtful adaptation.",
   },
   reflective: {
     title: "You found something different here",
-    subtitle: "Let's make this worth your time",
-    description: "Most link pages are static lists. This one pays attention to how you arrived, what you might need, and adapts itself accordingly. It's an experiment in making even the smallest interactions more thoughtful and human.",
+    subtitle: "A glimpse of what I'm building",
+    description: "Most link pages are static lists. This one pays attention to how you arrived and what you might need. It's a preview of the creator's toolkit platform—tools for clarity, color, headlines, ideas, and systems. Try the text upgrader below, then join the beta to get access to everything.",
   },
 };
 
@@ -45,4 +45,3 @@ export function Hero({ readingMode, accentColor }: HeroProps) {
     </GlassCard>
   );
 }
-
