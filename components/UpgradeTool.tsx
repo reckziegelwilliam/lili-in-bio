@@ -89,7 +89,6 @@ export function UpgradeTool({ accentColor }: UpgradeToolProps) {
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-semibold text-white mb-2 flex items-center gap-2">
-            <span>✨</span>
             <span>One-Minute Text Upgrade</span>
           </h2>
           <p className="text-white/70">
@@ -147,11 +146,10 @@ export function UpgradeTool({ accentColor }: UpgradeToolProps) {
         >
           {isLoading ? (
             <span className="flex items-center justify-center gap-2">
-              <span className="animate-pulse-slow">Upgrading</span>
-              <span className="animate-pulse-slow">✨</span>
+              <span className="animate-pulse-slow">Upgrading...</span>
             </span>
           ) : (
-            'Upgrade Text ✨'
+            'Upgrade Text'
           )}
         </button>
         
@@ -171,11 +169,21 @@ export function UpgradeTool({ accentColor }: UpgradeToolProps) {
                 onClick={handleCopy}
                 className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm transition-all"
               >
-                {copied ? '✓ Copied!' : 'Copy'}
+                {copied ? 'Copied!' : 'Copy'}
               </button>
             </div>
             <div className="p-4 rounded-xl bg-white/15 border border-white/30 text-white leading-relaxed">
               {outputText}
+            </div>
+            
+            {/* Beta CTA after successful upgrade */}
+            <div className="mt-6 p-4 bg-white/10 rounded-xl border border-white/20">
+              <p className="text-white/80 text-sm mb-3">
+                This is 1 tool from the full creator's toolkit platform. Get beta access for color generators, headline workshops, idea mixers, and more.
+              </p>
+              <a href="#beta-signup" className="text-white underline text-sm hover:text-white/80 transition-colors">
+                Join the beta →
+              </a>
             </div>
           </div>
         )}
@@ -183,4 +191,3 @@ export function UpgradeTool({ accentColor }: UpgradeToolProps) {
     </GlassCard>
   );
 }
-
