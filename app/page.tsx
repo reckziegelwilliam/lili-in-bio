@@ -9,6 +9,7 @@ import { Hero } from '@/components/Hero';
 import { VisitorSnapshotCard } from '@/components/VisitorSnapshotCard';
 import { ReadingModeToggle } from '@/components/ReadingModeToggle';
 import { UpgradeTool } from '@/components/UpgradeTool';
+import { BetaSignup } from '@/components/BetaSignup';
 import { MiniSystemsLibrary } from '@/components/MiniSystemsLibrary';
 import { InteractionChooser } from '@/components/InteractionChooser';
 import { SaveForLater } from '@/components/SaveForLater';
@@ -76,6 +77,11 @@ export default function Home() {
             {/* One-Minute Upgrade Tool */}
             <div className="animate-fade-in" style={{ animationDelay: '0.3s' }}>
               <UpgradeTool accentColor={accentColor} />
+            </div>
+
+            {/* Beta Signup - Primary CTA */}
+            <div id="beta-signup" className="animate-fade-in" style={{ animationDelay: '0.35s' }}>
+              <BetaSignup readingMode={readingMode} accentColor={accentColor} />
             </div>
 
             {/* Mini Systems Library */}
