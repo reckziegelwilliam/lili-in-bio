@@ -13,7 +13,7 @@ import type { VisitorSnapshot } from '@/types/visitor';
 const projects = [
   { name: 'drip-e', href: 'https://drip-e.com', enabled: true, description: 'serialized chapterbook writing by me :)' },
   { name: 'wefrigerator', href: 'https://comm-fridge.vercel.app/', enabled: true, description: 'Find & support community fridges near you' },
-  { name: 'liams.log', href: '#', enabled: true, description: 'exploring community based IOT and governance\nfun 95 Windows GUI' },
+  { name: 'liams.log', href: 'https://liamslog.com', enabled: true, description: 'exploring community based IOT and governance\nfun 95 Windows GUI' },
   { name: 'Project 4', href: '#', enabled: false },
   { name: 'Project 5', href: '#', enabled: false },
 ];
@@ -145,7 +145,9 @@ export default function Home() {
                       <span 
                         className={`text-xl font-black tracking-tight ${textPrimary}`}
                         style={{
-                          textShadow: `0 0 20px ${accentColor}, 0 0 40px ${accentColor}80`,
+                          textShadow: isDark
+                            ? `0 1px 2px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.5), 0 0 20px ${accentColor}, 0 0 40px ${accentColor}80`
+                            : `0 1px 2px rgba(0,0,0,0.15), 0 0 20px ${accentColor}, 0 0 40px ${accentColor}80`,
                         }}
                       >
                         {project.name}
@@ -164,8 +166,8 @@ export default function Home() {
                         className={`text-sm mt-1 text-center whitespace-pre-line font-medium ${textSecondary}`}
                         style={{
                           textShadow: isDark 
-                            ? '0 1px 2px rgba(0,0,0,0.5), 0 0 8px rgba(0,0,0,0.3)' 
-                            : '0 1px 2px rgba(255,255,255,0.8)',
+                            ? '0 1px 3px rgba(0,0,0,0.9), 0 2px 6px rgba(0,0,0,0.6)' 
+                            : '0 1px 2px rgba(0,0,0,0.1)',
                         }}
                       >
                         {project.description}
