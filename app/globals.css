@@ -44,17 +44,67 @@
 }
 
 /* Glass morphism utilities */
-  .glass {
-    background: rgba(0, 0, 0, 0.5) !important;
-    backdrop-filter: blur(24px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
-  }
+.glass {
+  background: rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+}
 
 .glass-dark {
   background: rgba(0, 0, 0, 0.08);
   backdrop-filter: blur(16px) saturate(140%);
   -webkit-backdrop-filter: blur(16px) saturate(140%);
   border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+/* 
+ * Instagram WebView / In-App Browser Compatibility
+ * Fallbacks for when backdrop-filter is not supported
+ */
+@supports not (backdrop-filter: blur(1px)) {
+  .backdrop-blur-xl,
+  .backdrop-blur-sm,
+  .backdrop-blur {
+    /* Solid semi-transparent fallback when blur not supported */
+    background-color: rgba(0, 0, 0, 0.75) !important;
+  }
+  
+  /* Dark mode button fallback - keep dark background for white text */
+  .bg-white\/20 {
+    background-color: rgba(40, 40, 50, 0.85) !important;
+  }
+  
+  /* Light mode button fallback - keep light background for dark text */
+  .bg-white\/70 {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+  }
+  
+  /* GitHub/secondary link fallbacks */
+  .bg-white\/10 {
+    background-color: rgba(40, 40, 50, 0.8) !important;
+  }
+  
+  .bg-black\/5 {
+    background-color: rgba(240, 240, 245, 0.95) !important;
+  }
+}
+
+/* Fix for Instagram in-app browser touch scrolling */
+html, body {
+  -webkit-overflow-scrolling: touch;
+  overflow-x: hidden;
+}
+
+/* Ensure buttons/links are easily tappable on mobile */
+a, button {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Fix for potential WebView font rendering issues */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Disable animations for users who prefer reduced motion */
@@ -66,5 +116,13 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* 
+ * Ensure external links work properly in Instagram WebView
+ * Instagram's WebView can sometimes block external links - this helps
+ */
+a[target="_blank"] {
+  cursor: pointer;
 }
 

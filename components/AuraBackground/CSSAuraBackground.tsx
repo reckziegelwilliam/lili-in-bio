@@ -3,11 +3,12 @@
 import type { AuraBackgroundProps, BlobConfig } from '@/types/visitor';
 import { hslToRgba, mapRange } from '@/lib/utils/seedGenerator';
 import { generateGradientCSS } from '@/lib/utils/paletteGenerator';
+import { useTheme } from '@/lib/hooks/useTheme';
 
 /**
  * Generate blob configurations from seed and palette
  */
-function generateBlobs(props: AuraBackgroundProps): BlobConfig[] {
+function generateBlobs(props: AuraBackgroundProps, isDark: boolean): BlobConfig[] {
   const { seed, palette, snapshot } = props;
   const blobs: BlobConfig[] = [];
   
@@ -26,6 +27,14 @@ function generateBlobs(props: AuraBackgroundProps): BlobConfig[] {
     const s = seeds[i];
     const hue = hues[i];
     
+    // Adjust lightness and opacity based on theme
+    const lightness = isDark 
+      ? mapRange(s, 0, 1, 70, 85)
+      : mapRange(s, 0, 1, 60, 75);
+    const opacity = isDark
+      ? mapRange(s, 0, 1, 0.5, 0.8)
+      : mapRange(s, 0, 1, 0.3, 0.5);
+    
     blobs.push({
       x: mapRange(s, 0, 1, 10, 90),
       y: mapRange(seeds[(i + 1) % blobCount], 0, 1, 10, 90),
@@ -33,11 +42,11 @@ function generateBlobs(props: AuraBackgroundProps): BlobConfig[] {
       color: hslToRgba(
         hue + (s - 0.5) * 20,
         mapRange(s, 0, 1, 60, 80),
-        mapRange(s, 0, 1, 70, 85),
-        mapRange(s, 0, 1, 0.4, 0.7)
+        lightness,
+        opacity
       ),
       blur: mapRange(s, 0, 1, 60, 120),
-      opacity: mapRange(s, 0, 1, 0.5, 0.8),
+      opacity: opacity,
       animationDelay: i * (4 / speedMultiplier),
       animationDuration: mapRange(s, 0, 1, 25, 35) / speedMultiplier,
     });
@@ -47,7 +56,8 @@ function generateBlobs(props: AuraBackgroundProps): BlobConfig[] {
 }
 
 export function CSSAuraBackground(props: AuraBackgroundProps) {
-  const blobs = generateBlobs(props);
+  const { isDark, mounted } = useTheme();
+  const blobs = generateBlobs(props, isDark);
   const gradientCSS = generateGradientCSS(props.palette, props.seed);
   
   // Check for reduced motion preference
@@ -63,14 +73,17 @@ export function CSSAuraBackground(props: AuraBackgroundProps) {
     'animate-blob-drift-5',
     'animate-blob-drift-6',
   ];
+
+  if (!mounted) return null;
   
   return (
-    <div className="fixed inset-0 -z-10 overflow-hidden">
+    <div className="fixed inset-0 z-0 overflow-hidden transition-colors duration-500">
       {/* Base gradient */}
       <div
-        className="absolute inset-0"
+        className="absolute inset-0 transition-opacity duration-500"
         style={{
           background: gradientCSS,
+          opacity: isDark ? 1 : 0.6,
         }}
       />
       
@@ -78,9 +91,9 @@ export function CSSAuraBackground(props: AuraBackgroundProps) {
       {blobs.map((blob, i) => (
         <div
           key={i}
-          className={`absolute rounded-full mix-blend-screen ${
-            prefersReducedMotion ? '' : animations[i]
-          }`}
+          className={`absolute rounded-full transition-opacity duration-500 ${
+            isDark ? 'mix-blend-screen' : 'mix-blend-multiply'
+          } ${prefersReducedMotion ? '' : animations[i]}`}
           style={{
             left: `${blob.x}%`,
             top: `${blob.y}%`,
@@ -97,9 +110,11 @@ export function CSSAuraBackground(props: AuraBackgroundProps) {
       
       {/* Glossy overlay */}
       <div
-        className="absolute inset-0 pointer-events-none"
+        className="absolute inset-0 pointer-events-none transition-opacity duration-500"
         style={{
-          background: 'linear-gradient(to bottom, rgba(255,255,255,0.15) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.1) 100%)',
+          background: isDark
+            ? 'linear-gradient(to bottom, rgba(255,255,255,0.15) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.1) 100%)'
+            : 'linear-gradient(to bottom, rgba(255,255,255,0.5) 0%, transparent 30%, transparent 70%, rgba(255,255,255,0.3) 100%)',
         }}
       />
     </div>
