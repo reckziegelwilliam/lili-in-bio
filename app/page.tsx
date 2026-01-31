@@ -11,9 +11,9 @@ import { PageLoadingState } from '@/components/LoadingStates';
 import type { VisitorSnapshot } from '@/types/visitor';
 
 const projects = [
-  { name: 'drip-e', href: 'https://drip-e.com', enabled: true, description: 'serialized chapterbook writing by me :)' },
-  { name: 'wefrigerator', href: 'https://comm-fridge.vercel.app/', enabled: true, description: 'Find & support community fridges near you' },
-  { name: 'liams.log', href: 'https://liamslog.com', enabled: true, description: 'exploring community based IOT and governance\nfun 95 Windows GUI' },
+  { name: 'drip-e', href: 'https://drip-e.com', enabled: true, description: 'serialized chapterbook writing by me ٩(＾◡＾)۶' },
+  { name: 'wefrigerator', href: 'https://comm-fridge.vercel.app/', enabled: true, description: 'Find & support community fridges near you (✦ ‿ ✦)' },
+  { name: 'liams.log', href: 'https://liamslog.com', enabled: true, description: 'exploring community based IOT and governance\nfun 95 Windows GUI (＾▽＾)' },
   { name: 'Project 4', href: '#', enabled: false },
   { name: 'Project 5', href: '#', enabled: false },
 ];
@@ -92,7 +92,7 @@ export default function Home() {
 
       {/* Light mode overlay to soften background */}
       {!isDark && (
-        <div className="fixed inset-0 bg-white/40 z-[1] pointer-events-none" />
+        <div className="fixed inset-0 bg-white/20 z-[1] pointer-events-none" />
       )}
 
       {/* Content */}
@@ -166,8 +166,8 @@ export default function Home() {
                         className={`text-sm mt-1 text-center whitespace-pre-line font-medium ${textSecondary}`}
                         style={{
                           textShadow: isDark 
-                            ? '0 1px 3px rgba(0,0,0,0.9), 0 2px 6px rgba(0,0,0,0.6)' 
-                            : '0 1px 2px rgba(0,0,0,0.1)',
+                            ? '0 1px 2px rgba(0,0,0,0.3)' 
+                            : 'none',
                         }}
                       >
                         {project.description}

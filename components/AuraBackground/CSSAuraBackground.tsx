@@ -27,13 +27,13 @@ function generateBlobs(props: AuraBackgroundProps, isDark: boolean): BlobConfig[
     const s = seeds[i];
     const hue = hues[i];
     
-    // Adjust lightness and opacity based on theme
+    // Adjust lightness and opacity based on theme (darker overall)
     const lightness = isDark 
-      ? mapRange(s, 0, 1, 70, 85)
-      : mapRange(s, 0, 1, 60, 75);
+      ? mapRange(s, 0, 1, 50, 65)  // Darker blobs in dark mode
+      : mapRange(s, 0, 1, 45, 60); // Darker blobs in light mode
     const opacity = isDark
-      ? mapRange(s, 0, 1, 0.5, 0.8)
-      : mapRange(s, 0, 1, 0.3, 0.5);
+      ? mapRange(s, 0, 1, 0.4, 0.65)
+      : mapRange(s, 0, 1, 0.35, 0.55);
     
     blobs.push({
       x: mapRange(s, 0, 1, 10, 90),
@@ -113,8 +113,18 @@ export function CSSAuraBackground(props: AuraBackgroundProps) {
         className="absolute inset-0 pointer-events-none transition-opacity duration-500"
         style={{
           background: isDark
-            ? 'linear-gradient(to bottom, rgba(255,255,255,0.15) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.1) 100%)'
-            : 'linear-gradient(to bottom, rgba(255,255,255,0.5) 0%, transparent 30%, transparent 70%, rgba(255,255,255,0.3) 100%)',
+            ? 'linear-gradient(to bottom, rgba(255,255,255,0.08) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.2) 100%)'
+            : 'linear-gradient(to bottom, rgba(255,255,255,0.25) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.1) 100%)',
+        }}
+      />
+      
+      {/* Darkening overlay for both modes */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: isDark
+            ? 'rgba(0,0,0,0.15)'
+            : 'rgba(0,0,0,0.08)',
         }}
       />
     </div>
