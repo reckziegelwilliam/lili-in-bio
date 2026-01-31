@@ -77,7 +77,7 @@ export default function Home() {
 
   // Theme-aware colors
   const textPrimary = isDark ? 'text-white' : 'text-gray-900';
-  const textSecondary = isDark ? 'text-white/60' : 'text-gray-600';
+  const textSecondary = isDark ? 'text-white/85' : 'text-gray-700';
   const textMuted = isDark ? 'text-white/20' : 'text-gray-400';
   const headerGradient = isDark 
     ? `linear-gradient(90deg, #fff 0%, ${accentColor} 45%, #fff 100%)`
@@ -160,7 +160,16 @@ export default function Home() {
                       </svg>
                     </span>
                     {project.description && (
-                      <p className={`text-sm mt-1 text-center whitespace-pre-line ${textSecondary}`}>{project.description}</p>
+                      <p 
+                        className={`text-sm mt-1 text-center whitespace-pre-line font-medium ${textSecondary}`}
+                        style={{
+                          textShadow: isDark 
+                            ? '0 1px 2px rgba(0,0,0,0.5), 0 0 8px rgba(0,0,0,0.3)' 
+                            : '0 1px 2px rgba(255,255,255,0.8)',
+                        }}
+                      >
+                        {project.description}
+                      </p>
                     )}
                   </a>
                 ) : (
