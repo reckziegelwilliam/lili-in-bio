@@ -1,7 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import PlausibleProvider from "next-plausible";
 import { Providers } from "@/components/Providers";
 import "./globals.css";
+
+const plausibleDomain = process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN;
 
 const inter = Inter({ 
   subsets: ["latin"],
@@ -57,9 +60,15 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className={`${inter.className} antialiased`}>
-        <Providers>
-          {children}
-        </Providers>
+        <PlausibleProvider
+          domain={plausibleDomain || "lili.in.bio"}
+          enabled={!!plausibleDomain}
+          trackOutboundLinks
+        >
+          <Providers>
+            {children}
+          </Providers>
+        </PlausibleProvider>
         {/* Fallback for when JavaScript fails in WebView */}
         <noscript>
           <style>{`
