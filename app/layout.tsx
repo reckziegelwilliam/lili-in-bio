@@ -64,6 +64,7 @@ export default function RootLayout({
           domain={plausibleDomain || "lili.in.bio"}
           enabled={!!plausibleDomain}
           trackOutboundLinks
+          taggedEvents
         >
           <Providers>
             {children}

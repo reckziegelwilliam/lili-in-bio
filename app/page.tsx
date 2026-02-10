@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
+import { usePlausible } from 'next-plausible';
 import { useVisitorSnapshot } from '@/lib/hooks/useVisitorSnapshot';
 import { useTheme } from '@/lib/hooks/useTheme';
 import { generateVisualSeed } from '@/lib/utils/seedGenerator';
@@ -37,10 +38,12 @@ const DEFAULT_SNAPSHOT: VisitorSnapshot = {
 const SNAPSHOT_TIMEOUT_MS = 1500;
 
 export default function Home() {
+  const plausible = usePlausible();
   const detectedSnapshot = useVisitorSnapshot();
   const { isDark, mounted } = useTheme();
   const [isLoading, setIsLoading] = useState(true);
   const [timedOut, setTimedOut] = useState(false);
+  const visitTracked = useRef(false);
 
   // Fallback timeout - don't block rendering forever if detection fails
   useEffect(() => {
@@ -65,6 +68,13 @@ export default function Home() {
     if (timedOut) return DEFAULT_SNAPSHOT;
     return null;
   }, [detectedSnapshot, timedOut]);
+
+  // Fire Visit event once when snapshot is ready (source + device for Plausible breakdown)
+  useEffect(() => {
+    if (!snapshot || visitTracked.current) return;
+    visitTracked.current = true;
+    plausible('Visit', { props: { source: snapshot.source, device: snapshot.deviceType } });
+  }, [snapshot, plausible]);
 
   // Show loading state only briefly, with hard timeout
   if (isLoading || !snapshot || !mounted) {
