@@ -69,11 +69,20 @@ export default function Home() {
     return null;
   }, [detectedSnapshot, timedOut]);
 
-  // Fire Visit event once when snapshot is ready (source + device for Plausible breakdown)
+  // Fire Visit event once when snapshot is ready (props for Plausible breakdown/filters)
   useEffect(() => {
     if (!snapshot || visitTracked.current) return;
     visitTracked.current = true;
-    plausible('Visit', { props: { source: snapshot.source, device: snapshot.deviceType } });
+    plausible('Visit', {
+      props: {
+        source: snapshot.source,
+        device: snapshot.deviceType,
+        lang: snapshot.language?.slice(0, 2) || 'en',
+        returning: snapshot.isReturning ? 'yes' : 'no',
+        browser: snapshot.browser || 'unknown',
+        dark: snapshot.prefersDark ? 'yes' : 'no',
+      },
+    });
   }, [snapshot, plausible]);
 
   // Show loading state only briefly, with hard timeout
@@ -140,6 +149,15 @@ export default function Home() {
                     href={project.href}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() =>
+                      plausible('Link click', {
+                        props: {
+                          destination: project.name,
+                          source: snapshot.source,
+                          device: snapshot.deviceType,
+                        },
+                      })
+                    }
                     className={`group block w-full py-5 px-6 rounded-2xl backdrop-blur-xl border-2 hover:scale-[1.03] transition-all duration-300 ${
                       isDark 
                         ? 'bg-white/20 border-white/30' 
@@ -210,6 +228,15 @@ export default function Home() {
               href="https://github.com/reckziegelwilliam"
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() =>
+                plausible('Link click', {
+                  props: {
+                    destination: 'GitHub',
+                    source: snapshot.source,
+                    device: snapshot.deviceType,
+                  },
+                })
+              }
               className={`flex items-center justify-center gap-3 w-full py-4 px-6 rounded-2xl backdrop-blur-sm border text-base font-medium transition-all duration-200 ${
                 isDark 
                   ? 'bg-white/10 border-white/15 text-white/70 hover:bg-white/15 hover:text-white' 
