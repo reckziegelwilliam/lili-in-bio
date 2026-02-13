@@ -8,16 +8,10 @@ import { generateVisualSeed } from '@/lib/utils/seedGenerator';
 import { generatePalette } from '@/lib/utils/paletteGenerator';
 import { AuraBackground } from '@/components/AuraBackground';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { ProjectCard } from '@/components/ProjectCard';
 import { PageLoadingState } from '@/components/LoadingStates';
+import { projects } from '@/data/projects';
 import type { VisitorSnapshot } from '@/types/visitor';
-
-const projects = [
-  { name: 'drip-e', href: 'https://drip-e.com', enabled: true, description: 'serialized chapterbook writing by me ٩(＾◡＾)۶' },
-  { name: 'wefrigerator', href: 'https://comm-fridge.vercel.app/', enabled: true, description: 'Find & support community fridges near you (✦ ‿ ✦)' },
-  { name: 'liams.log', href: 'https://liamslog.com', enabled: true, description: 'exploring community based IOT and governance\nfun 95 Windows GUI (＾▽＾)' },
-  { name: 'Project 4', href: '#', enabled: false },
-  { name: 'Project 5', href: '#', enabled: false },
-];
 
 // Default snapshot for when detection fails (Instagram WebView, privacy browsers, etc.)
 const DEFAULT_SNAPSHOT: VisitorSnapshot = {
@@ -139,70 +133,32 @@ export default function Home() {
           {/* Project Buttons */}
           <div className="space-y-4">
             {projects.map((project, index) => (
-              <div
-                key={project.name}
-                className="animate-fade-in"
-                style={{ animationDelay: `${0.1 + index * 0.1}s` }}
-              >
-                {project.enabled ? (
-                  <a
-                    href={project.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() =>
-                      plausible('Link click', {
-                        props: {
-                          destination: project.name,
-                          source: snapshot.source,
-                          device: snapshot.deviceType,
-                        },
-                      })
-                    }
-                    className={`group block w-full py-5 px-6 rounded-2xl backdrop-blur-xl border-2 hover:scale-[1.03] transition-all duration-300 ${
-                      isDark 
-                        ? 'bg-white/20 border-white/30' 
-                        : 'bg-white/70 border-gray-200'
-                    }`}
-                    style={{
-                      boxShadow: isDark
-                        ? `0 0 30px ${accentColor}40, 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2)`
-                        : `0 0 30px ${accentColor}30, 0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)`,
-                    }}
-                  >
-                    <span className="flex items-center justify-center gap-2">
-                      <span 
-                        className={`text-xl font-black tracking-tight ${textPrimary}`}
-                        style={{
-                          textShadow: isDark
-                            ? `0 1px 2px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.5), 0 0 20px ${accentColor}, 0 0 40px ${accentColor}80`
-                            : `0 1px 2px rgba(0,0,0,0.15), 0 0 20px ${accentColor}, 0 0 40px ${accentColor}80`,
-                        }}
-                      >
-                        {project.name}
-                      </span>
-                      <svg 
-                        className={`w-5 h-5 opacity-70 group-hover:translate-x-1 transition-transform ${textPrimary}`}
-                        fill="none" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                      </svg>
-                    </span>
-                    {project.description && (
-                      <p 
-                        className={`text-sm mt-1 text-center whitespace-pre-line font-medium ${textSecondary}`}
-                        style={{
-                          textShadow: isDark 
-                            ? '0 1px 2px rgba(0,0,0,0.3)' 
-                            : 'none',
-                        }}
-                      >
-                        {project.description}
-                      </p>
-                    )}
-                  </a>
-                ) : (
+              project.enabled ? (
+                <ProjectCard
+                  key={project.name}
+                  project={project}
+                  isDark={isDark}
+                  accentColor={accentColor}
+                  textPrimary={textPrimary}
+                  textSecondary={textSecondary}
+                  textMuted={textMuted}
+                  animationDelay={`${0.1 + index * 0.1}s`}
+                  onLinkClick={() =>
+                    plausible('Link click', {
+                      props: {
+                        destination: project.name,
+                        source: snapshot.source,
+                        device: snapshot.deviceType,
+                      },
+                    })
+                  }
+                />
+              ) : (
+                <div
+                  key={project.name}
+                  className="animate-fade-in"
+                  style={{ animationDelay: `${0.1 + index * 0.1}s` }}
+                >
                   <div
                     className={`relative block w-full py-5 px-6 rounded-2xl backdrop-blur-sm border text-center cursor-not-allowed overflow-hidden ${
                       isDark 
@@ -217,8 +173,8 @@ export default function Home() {
                       Soon
                     </span>
                   </div>
-                )}
-              </div>
+                </div>
+              )
             ))}
           </div>
 
