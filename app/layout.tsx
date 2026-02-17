@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { Inter } from "next/font/google";
-import PlausibleProvider from "next-plausible";
 import { Providers } from "@/components/Providers";
 import "./globals.css";
 
-const plausibleDomain = process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN;
+const plausibleDomain = process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN || "lili-in.bio";
 
 const inter = Inter({ 
   subsets: ["latin"],
@@ -60,16 +60,15 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className={`${inter.className} antialiased`}>
-        <PlausibleProvider
-          domain={plausibleDomain || "lili.in.bio"}
-          enabled={!!plausibleDomain}
-          trackOutboundLinks
-          taggedEvents
-        >
-          <Providers>
-            {children}
-          </Providers>
-        </PlausibleProvider>
+        <Script
+          defer
+          data-domain={plausibleDomain}
+          src="https://plausible.io/js/script.tagged-events.outbound-links.js"
+          strategy="afterInteractive"
+        />
+        <Providers>
+          {children}
+        </Providers>
         {/* Fallback for when JavaScript fails in WebView */}
         <noscript>
           <style>{`

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useMemo } from 'react';
-import { usePlausible } from 'next-plausible';
+import { trackEvent } from '@/lib/utils/plausible';
 import { useVisitorSnapshot } from '@/lib/hooks/useVisitorSnapshot';
 import { useTheme } from '@/lib/hooks/useTheme';
 import { generateVisualSeed } from '@/lib/utils/seedGenerator';
@@ -32,7 +32,6 @@ const DEFAULT_SNAPSHOT: VisitorSnapshot = {
 const SNAPSHOT_TIMEOUT_MS = 1500;
 
 export default function Home() {
-  const plausible = usePlausible();
   const detectedSnapshot = useVisitorSnapshot();
   const { isDark, mounted } = useTheme();
   const [isLoading, setIsLoading] = useState(true);
@@ -67,7 +66,7 @@ export default function Home() {
   useEffect(() => {
     if (!snapshot || visitTracked.current) return;
     visitTracked.current = true;
-    plausible('Visit', {
+    trackEvent('Visit', {
       props: {
         source: snapshot.source,
         device: snapshot.deviceType,
@@ -77,7 +76,7 @@ export default function Home() {
         dark: snapshot.prefersDark ? 'yes' : 'no',
       },
     });
-  }, [snapshot, plausible]);
+  }, [snapshot]);
 
   // Show loading state only briefly, with hard timeout
   if (isLoading || !snapshot || !mounted) {
@@ -144,7 +143,7 @@ export default function Home() {
                   textMuted={textMuted}
                   animationDelay={`${0.1 + index * 0.1}s`}
                   onLinkClick={() =>
-                    plausible('Link click', {
+                    trackEvent('Link click', {
                       props: {
                         destination: project.name,
                         source: snapshot.source,
@@ -185,7 +184,7 @@ export default function Home() {
               target="_blank"
               rel="noopener noreferrer"
               onClick={() =>
-                plausible('Link click', {
+                trackEvent('Link click', {
                   props: {
                     destination: 'GitHub',
                     source: snapshot.source,
