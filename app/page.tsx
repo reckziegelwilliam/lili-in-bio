@@ -11,6 +11,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { ProjectCard } from '@/components/ProjectCard';
 import { PageLoadingState } from '@/components/LoadingStates';
 import { projects } from '@/data/projects';
+import { getCardIntensity } from '@/lib/utils/freshness';
 import type { VisitorSnapshot } from '@/types/visitor';
 
 // Default snapshot for when detection fails (Instagram WebView, privacy browsers, etc.)
@@ -152,28 +153,50 @@ export default function Home() {
                     })
                   }
                 />
-              ) : (
-                <div
-                  key={project.name}
-                  className="animate-fade-in"
-                  style={{ animationDelay: `${0.1 + index * 0.1}s` }}
-                >
+              ) : (() => {
+                const { intensity } = getCardIntensity(project.recentImprovements);
+                const hasGlow = intensity > 0;
+                return (
                   <div
-                    className={`relative block w-full py-5 px-6 rounded-2xl backdrop-blur-sm border text-center cursor-not-allowed overflow-hidden ${
-                      isDark 
-                        ? 'bg-black/20 border-white/5' 
-                        : 'bg-gray-100/50 border-gray-200/50'
-                    }`}
+                    key={project.name}
+                    className="animate-fade-in"
+                    style={{ animationDelay: `${0.1 + index * 0.1}s` }}
                   >
-                    <span className={`text-lg font-medium ${textMuted}`}>{project.name}</span>
-                    <span className={`absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium uppercase tracking-wider ${
-                      isDark ? 'text-white/15' : 'text-gray-300'
-                    }`}>
-                      Soon
-                    </span>
+                    <div
+                      className={`relative block w-full py-5 px-6 rounded-2xl backdrop-blur-sm border text-center cursor-not-allowed overflow-hidden ${
+                        isDark 
+                          ? 'bg-black/20 border-white/5' 
+                          : 'bg-gray-100/50 border-gray-200/50'
+                      }`}
+                    >
+                      <span
+                        className={`text-lg font-medium ${hasGlow ? (isDark ? 'text-white/60' : 'text-gray-500') : textMuted}`}
+                        style={hasGlow ? {
+                          textShadow: isDark
+                            ? `0 0 12px ${accentColor}80, 0 0 30px ${accentColor}40`
+                            : `0 0 10px ${accentColor}60, 0 0 24px ${accentColor}30`,
+                        } : undefined}
+                      >
+                        {project.name}
+                      </span>
+                      <span
+                        className={`absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium uppercase tracking-wider ${
+                          hasGlow
+                            ? (isDark ? 'text-white/30' : 'text-gray-400')
+                            : (isDark ? 'text-white/15' : 'text-gray-300')
+                        }`}
+                        style={hasGlow ? {
+                          textShadow: isDark
+                            ? `0 0 8px ${accentColor}60`
+                            : `0 0 6px ${accentColor}40`,
+                        } : undefined}
+                      >
+                        Soon
+                      </span>
+                    </div>
                   </div>
-                </div>
-              )
+                );
+              })()
             ))}
           </div>
 
