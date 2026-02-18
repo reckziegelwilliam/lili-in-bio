@@ -19,7 +19,7 @@ export const projects: Project[] = [
     enabled: true,
     description: 'serialized chapterbook writing by me\n٩(＾◡＾)۶',
     recentImprovements: [
-      { text: '4 new poems added to Select Poems', date: '2026-02-18', type: 'update' },
+      { text: 'Select Poems, 2 - 5', date: '2026-02-18', type: 'update' },
       { text: 'Check In Chapter 9', date: '2026-02-13', type: 'update' },
     ],
   },
@@ -44,7 +44,7 @@ export const projects: Project[] = [
     href: '#',
     enabled: false,
     recentImprovements: [
-      { text: 'Coming April 14', date: '2026-04-14', type: 'upcoming' },
+      { text: 'April 14', date: '2026-04-14', type: 'upcoming' },
     ],
   },
   { name: 'Project 5', href: '#', enabled: false },
