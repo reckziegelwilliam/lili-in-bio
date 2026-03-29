@@ -200,8 +200,43 @@ export default function Home() {
             ))}
           </div>
 
+          {/* Ember Section */}
+          <div className="mt-10 animate-fade-in" style={{ animationDelay: '0.65s' }}>
+            <div
+              className={`w-full py-6 px-6 rounded-2xl backdrop-blur-xl border-2 ${
+                isDark
+                  ? 'bg-white/10 border-orange-400/20'
+                  : 'bg-white/70 border-orange-300/30'
+              }`}
+              style={{
+                boxShadow: isDark
+                  ? '0 8px 32px rgba(0,0,0,0.3), 0 0 40px rgba(251,146,60,0.15)'
+                  : '0 8px 32px rgba(0,0,0,0.08), 0 0 30px rgba(251,146,60,0.1)',
+              }}
+            >
+              <h2
+                className={`text-2xl font-black tracking-tight text-center ${textPrimary}`}
+                style={{
+                  textShadow: isDark
+                    ? '0 0 20px rgba(251,146,60,0.6), 0 0 40px rgba(251,146,60,0.3)'
+                    : '0 0 16px rgba(251,146,60,0.4), 0 0 32px rgba(251,146,60,0.2)',
+                }}
+              >
+                Ember
+              </h2>
+              <p className={`text-sm mt-2 text-center font-medium leading-relaxed ${textSecondary}`}>
+                California wildfire-readiness tool that helps homeowners assess, plan, and document home hardening — then export an insurer-ready proof packet.
+              </p>
+              <p className={`text-xs mt-3 text-center italic ${
+                isDark ? 'text-orange-300/60' : 'text-orange-600/60'
+              }`}>
+                Currently being piloted by select counties in California
+              </p>
+            </div>
+          </div>
+
           {/* GitHub Link */}
-          <div className="mt-10 animate-fade-in" style={{ animationDelay: '0.7s' }}>
+          <div className="mt-6 animate-fade-in" style={{ animationDelay: '0.75s' }}>
             <a
               href="https://github.com/reckziegelwilliam"
               target="_blank"

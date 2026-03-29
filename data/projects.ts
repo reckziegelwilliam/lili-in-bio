@@ -19,7 +19,8 @@ export const projects: Project[] = [
     enabled: true,
     description: 'serialized chapterbook writing by me\n٩(＾◡＾)۶',
     recentImprovements: [
-      { text: 'Select Poems, 2 - 5', date: '2026-02-18', type: 'update' },
+      { text: 'Submitted Check In to Publisher', date: '2026-02-14', type: 'upcoming' },
+      { text: 'Check In Chapter 10', date: '2026-03-28', type: 'update' },
       { text: 'Check In Chapter 9', date: '2026-02-13', type: 'update' },
     ],
   },
@@ -28,7 +29,7 @@ export const projects: Project[] = [
     href: 'https://comm-fridge.vercel.app/',
     enabled: true,
     description: 'find & support community fridges near you\n(✦ ‿ ✦)',
-    // no recentImprovements -- card will have zero intensity
+    // no recentImprovements -- card will have zero intensitys
   },
   {
     name: 'liams.log',
@@ -40,7 +41,7 @@ export const projects: Project[] = [
     ],
   },
   {
-    name: 'Project 4',
+    name: 'Project 4 - Open Source Designs',
     href: '#',
     enabled: false,
     recentImprovements: [
