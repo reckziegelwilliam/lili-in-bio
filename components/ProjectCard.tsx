@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import type { Project } from '@/data/projects';
 import { getCardIntensity, getItemIntensity } from '@/lib/utils/freshness';
@@ -28,6 +29,7 @@ export function ProjectCard({
   onLinkClick,
 }: ProjectCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const prefersReducedMotion = useReducedMotion();
 
   const { intensity, type: cardType } = getCardIntensity(
@@ -135,7 +137,7 @@ export function ProjectCard({
           rel="noopener noreferrer"
           onClick={onLinkClick}
           className={`group relative block w-full py-5 px-6 rounded-2xl backdrop-blur-xl border-2 overflow-hidden transition-colors duration-300 ${
-            isDark ? 'bg-white/20' : 'bg-white/70'
+            isDark ? 'bg-white/30' : 'bg-white/90'
           }`}
           style={{
             boxShadow: cardShadow,
@@ -245,6 +247,93 @@ export function ProjectCard({
               >
                 {project.description}
               </p>
+            )}
+
+            {/* Thumbnail preview strip + expandable full image */}
+            {project.thumbnail && (
+              <>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setPreviewOpen(!previewOpen);
+                  }}
+                  className={`mt-3 relative w-full rounded-xl overflow-hidden cursor-pointer ${
+                    isDark ? 'ring-1 ring-white/10' : 'ring-1 ring-black/5'
+                  }`}
+                >
+                  {/* Collapsed: thin peek strip */}
+                  {!previewOpen && (
+                    <div className="relative w-full h-16">
+                      <Image
+                        src={project.thumbnail}
+                        alt={`${project.name} preview`}
+                        fill
+                        className="object-cover object-top"
+                        sizes="(max-width: 448px) 100vw, 448px"
+                      />
+                      <div className={`absolute inset-0 ${
+                        isDark
+                          ? 'bg-gradient-to-t from-black/60 via-transparent to-transparent'
+                          : 'bg-gradient-to-t from-white/50 via-transparent to-transparent'
+                      }`} />
+                      <div className={`absolute bottom-1 left-0 right-0 flex justify-center ${
+                        isDark ? 'text-white/50' : 'text-gray-400'
+                      }`}>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
+                  )}
+                </button>
+
+                <AnimatePresence initial={false}>
+                  {previewOpen && (
+                    <motion.div
+                      key="thumbnail-full"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{
+                        height: { type: 'spring', stiffness: 300, damping: 30 },
+                        opacity: { duration: 0.2 },
+                      }}
+                      className="overflow-hidden mt-3"
+                    >
+                      <button
+                        title="Close preview"
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setPreviewOpen(false);
+                        }}
+                        className={`relative w-full rounded-xl overflow-hidden cursor-pointer ${
+                          isDark ? 'ring-1 ring-white/10' : 'ring-1 ring-black/5'
+                        }`}
+                      >
+                        <Image
+                          src={project.thumbnail}
+                          alt={`${project.name} preview`}
+                          width={800}
+                          height={600}
+                          className="w-full h-auto rounded-xl"
+                          sizes="(max-width: 448px) 100vw, 448px"
+                        />
+                        <div className={`absolute bottom-1 left-0 right-0 flex justify-center ${
+                          isDark ? 'text-white/50' : 'text-gray-400'
+                        }`}>
+                          <svg className="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </div>
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </>
             )}
 
             {/* Collapsible toggle — icon-only with badge */}

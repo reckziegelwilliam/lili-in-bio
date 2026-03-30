@@ -165,8 +165,8 @@ export default function Home() {
                     <div
                       className={`relative block w-full py-5 px-6 rounded-2xl backdrop-blur-sm border text-center cursor-not-allowed overflow-hidden ${
                         isDark 
-                          ? 'bg-black/20 border-white/5' 
-                          : 'bg-gray-100/50 border-gray-200/50'
+                          ? 'bg-black/40 border-white/10' 
+                          : 'bg-gray-100/80 border-gray-200/60'
                       }`}
                     >
                       <span
@@ -200,7 +200,7 @@ export default function Home() {
             ))}
           </div>
 
-          {/* Ember Section */}
+          {/* wildready Section */}
           <div className="mt-10 animate-fade-in" style={{ animationDelay: '0.65s' }}>
             <div
               className={`w-full py-6 px-6 rounded-2xl backdrop-blur-xl border-2 ${
@@ -222,7 +222,7 @@ export default function Home() {
                     : '0 0 16px rgba(251,146,60,0.4), 0 0 32px rgba(251,146,60,0.2)',
                 }}
               >
-                Ember
+                wildready
               </h2>
               <p className={`text-sm mt-2 text-center font-medium leading-relaxed ${textSecondary}`}>
                 California wildfire-readiness tool that helps homeowners assess, plan, and document home hardening — then export an insurer-ready proof packet.
