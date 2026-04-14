@@ -15,6 +15,18 @@ export interface Project {
 
 export const projects: Project[] = [
   {
+    name: 'oesis',
+    href: 'https://infreeformation.com',
+    enabled: true,
+    description: 'of all these projects, this is the only one that matters to me',
+  },
+  {
+    name: 'ready for the wild',
+    href: 'https://www.readyforthewild.com',
+    enabled: true,
+    description: 'home hardening for wildfire country',
+  },
+  {
     name: 'liams.log',
     href: 'https://liamslog.com',
     enabled: true,
@@ -30,18 +42,6 @@ export const projects: Project[] = [
     enabled: true,
     description: 'find & support community fridges near you\n(✦ ‿ ✦)',
     thumbnail: '/thumbnails/wefrigerator.png',
-  },
-  {
-    name: 'oesis',
-    href: 'https://infreeformation.com',
-    enabled: true,
-    description: 'of all these projects, this is the only one that matters to me',
-  },
-  {
-    name: 'ready for the wild',
-    href: 'https://www.readyforthewild.com',
-    enabled: true,
-    description: 'home hardening for wildfire country',
   },
   {
     name: 'drip-e',
