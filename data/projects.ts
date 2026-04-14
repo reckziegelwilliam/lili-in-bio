@@ -32,20 +32,16 @@ export const projects: Project[] = [
     thumbnail: '/thumbnails/wefrigerator.png',
   },
   {
-    name: 'Open Source Designs',
-    href: '#',
-    enabled: false,
-    recentImprovements: [
-      { text: 'April 14', date: '2026-04-14', type: 'upcoming' },
-    ],
+    name: 'oesis',
+    href: 'https://infreeformation.com',
+    enabled: true,
+    description: 'of all these projects, this is the only one that matters to me',
   },
   {
-    name: 'OpenBuild',
-    href: '#',
-    enabled: false,
-    recentImprovements: [
-      { text: 'End of April', date: '2026-04-30', type: 'upcoming' },
-    ],
+    name: 'ready for the wild',
+    href: 'https://www.readyforthewild.com',
+    enabled: true,
+    description: 'home hardening for wildfire country',
   },
   {
     name: 'drip-e',
