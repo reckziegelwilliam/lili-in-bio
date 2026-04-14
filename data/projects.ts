@@ -24,7 +24,7 @@ export const projects: Project[] = [
     name: 'ready for the wild',
     href: 'https://www.readyforthewild.com',
     enabled: true,
-    description: 'home hardening for wildfire country',
+    description: 'post la wildfire development -- thank you to those who submitted/sent form',
   },
   {
     name: 'liams.log',
