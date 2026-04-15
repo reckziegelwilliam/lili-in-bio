@@ -22,7 +22,7 @@ export const projects: Project[] = [
   },
   {
     name: 'ready for the wild',
-    href: 'https://www.readyforthewild.app',
+    href: 'https://readyforthewild.app',
     enabled: true,
     description: 'post la wildfire development -- thank you to those who submitted/sent form',
   },
