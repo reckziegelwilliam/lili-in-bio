@@ -10,7 +10,7 @@ import { AuraBackground } from '@/components/AuraBackground';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { ProjectCard } from '@/components/ProjectCard';
 import { PageLoadingState } from '@/components/LoadingStates';
-import { projects } from '@/data/projects';
+import { projectsByCategory } from '@/data/projects';
 import { getCardIntensity } from '@/lib/utils/freshness';
 import type { VisitorSnapshot } from '@/types/visitor';
 
@@ -130,74 +130,109 @@ export default function Home() {
             </h1>
           </div>
 
-          {/* Project Buttons */}
-          <div className="space-y-4">
-            {projects.map((project, index) => (
-              project.enabled ? (
-                <ProjectCard
-                  key={project.name}
-                  project={project}
-                  isDark={isDark}
-                  accentColor={accentColor}
-                  textPrimary={textPrimary}
-                  textSecondary={textSecondary}
-                  textMuted={textMuted}
-                  animationDelay={`${0.1 + index * 0.1}s`}
-                  onLinkClick={() =>
-                    trackEvent('Link click', {
-                      props: {
-                        destination: project.name,
-                        source: snapshot.source,
-                        device: snapshot.deviceType,
-                      },
-                    })
-                  }
-                />
-              ) : (() => {
-                const { intensity } = getCardIntensity(project.recentImprovements);
-                const hasGlow = intensity > 0;
-                return (
+          {/* Project Sections, grouped by category */}
+          <div className="space-y-8">
+            {projectsByCategory.map(({ category, projects: group }, groupIndex) => {
+              const sectionDelay = `${0.1 + groupIndex * 0.05}s`;
+              return (
+                <div key={category}>
+                  {/* Category section break */}
                   <div
-                    key={project.name}
-                    className="animate-fade-in"
-                    style={{ animationDelay: `${0.1 + index * 0.1}s` }}
+                    className="flex items-center gap-3 mb-4 animate-fade-in"
+                    style={{ animationDelay: sectionDelay }}
                   >
-                    <div
-                      className={`relative block w-full py-5 px-6 rounded-2xl backdrop-blur-sm border text-center cursor-not-allowed overflow-hidden ${
-                        isDark 
-                          ? 'bg-black/40 border-white/10' 
-                          : 'bg-gray-100/80 border-gray-200/60'
+                    <span className={`h-px flex-1 ${isDark ? 'bg-white/10' : 'bg-black/10'}`} />
+                    <span
+                      className={`text-[11px] font-bold uppercase tracking-[0.2em] ${
+                        isDark ? 'text-white/40' : 'text-gray-400'
                       }`}
                     >
-                      <span
-                        className={`text-lg font-medium ${hasGlow ? (isDark ? 'text-white/60' : 'text-gray-500') : textMuted}`}
-                        style={hasGlow ? {
-                          textShadow: isDark
-                            ? `0 0 12px ${accentColor}80, 0 0 30px ${accentColor}40`
-                            : `0 0 10px ${accentColor}60, 0 0 24px ${accentColor}30`,
-                        } : undefined}
-                      >
-                        {project.name}
-                      </span>
-                      <span
-                        className={`absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium uppercase tracking-wider ${
-                          hasGlow
-                            ? (isDark ? 'text-white/30' : 'text-gray-400')
-                            : (isDark ? 'text-white/15' : 'text-gray-300')
-                        }`}
-                        style={hasGlow ? {
-                          textShadow: isDark
-                            ? `0 0 8px ${accentColor}60`
-                            : `0 0 6px ${accentColor}40`,
-                        } : undefined}
-                      >
-                        Soon
-                      </span>
-                    </div>
+                      {category}
+                    </span>
+                    <span className={`h-px flex-1 ${isDark ? 'bg-white/10' : 'bg-black/10'}`} />
                   </div>
-                );
-              })()
-            ))}
+
+                  <div className="space-y-4">
+                    {group.map((project, indexInGroup) => {
+                      const delay = `${0.15 + groupIndex * 0.05 + indexInGroup * 0.1}s`;
+                      return project.enabled ? (
+                        <ProjectCard
+                          key={project.name}
+                          project={project}
+                          isDark={isDark}
+                          accentColor={accentColor}
+                          textPrimary={textPrimary}
+                          textSecondary={textSecondary}
+                          textMuted={textMuted}
+                          animationDelay={delay}
+                          onLinkClick={() =>
+                            trackEvent('Link click', {
+                              props: {
+                                destination: project.name,
+                                source: snapshot.source,
+                                device: snapshot.deviceType,
+                              },
+                            })
+                          }
+                          onSubLinkClick={(subName) =>
+                            trackEvent('Link click', {
+                              props: {
+                                destination: `${project.name} - ${subName}`,
+                                source: snapshot.source,
+                                device: snapshot.deviceType,
+                              },
+                            })
+                          }
+                        />
+                      ) : (() => {
+                        const { intensity } = getCardIntensity(project.recentImprovements);
+                        const hasGlow = intensity > 0;
+                        return (
+                          <div
+                            key={project.name}
+                            className="animate-fade-in"
+                            style={{ animationDelay: delay }}
+                          >
+                            <div
+                              className={`relative block w-full py-5 px-6 rounded-2xl backdrop-blur-sm border text-center cursor-not-allowed overflow-hidden ${
+                                isDark
+                                  ? 'bg-black/40 border-white/10'
+                                  : 'bg-gray-100/80 border-gray-200/60'
+                              }`}
+                            >
+                              <span
+                                className={`text-lg font-medium ${hasGlow ? (isDark ? 'text-white/60' : 'text-gray-500') : textMuted}`}
+                                style={hasGlow ? {
+                                  textShadow: isDark
+                                    ? `0 0 12px ${accentColor}80, 0 0 30px ${accentColor}40`
+                                    : `0 0 10px ${accentColor}60, 0 0 24px ${accentColor}30`,
+                                } : undefined}
+                              >
+                                {project.name}
+                              </span>
+                              <span
+                                className={`absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium uppercase tracking-wider ${
+                                  hasGlow
+                                    ? (isDark ? 'text-white/30' : 'text-gray-400')
+                                    : (isDark ? 'text-white/15' : 'text-gray-300')
+                                }`}
+                                style={hasGlow ? {
+                                  textShadow: isDark
+                                    ? `0 0 8px ${accentColor}60`
+                                    : `0 0 6px ${accentColor}40`,
+                                } : undefined}
+                              >
+                                Soon
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })();
+                    })}
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           {/* wildready Section */}
