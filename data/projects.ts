@@ -71,11 +71,11 @@ export const projects: Project[] = [
     href: 'https://comm-fridge.vercel.app/',
     enabled: true,
     category: 'Directory',
-    description: 'find & support community fridges near you',
+    description: 'a mutual aid directory -- find & support community fridges near you',
     thumbnail: '/thumbnails/wefrigerator.png',
   },
   {
-    name: 'thisshouldbefun',
+    name: 'this might be fun',
     href: 'https://thismightbefun.com',
     enabled: true,
     category: 'Directory',
@@ -103,7 +103,7 @@ export const projects: Project[] = [
     href: 'https://liamslog.com',
     enabled: true,
     category: 'Writing',
-    description: 'my personal journal -- writing on community tech, IoT, and governance',
+    description: 'exploring community attempts on climate action -- notes on community tech, IoT, and governance',
     thumbnail: '/thumbnails/liamslog.png',
   },
   {

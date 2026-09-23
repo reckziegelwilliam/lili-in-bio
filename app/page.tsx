@@ -92,9 +92,9 @@ export default function Home() {
   const textPrimary = isDark ? 'text-white' : 'text-gray-900';
   const textSecondary = isDark ? 'text-white/85' : 'text-gray-700';
   const textMuted = isDark ? 'text-white/20' : 'text-gray-400';
-  const headerGradient = isDark 
-    ? `linear-gradient(90deg, #fff 0%, ${accentColor} 45%, #fff 100%)`
-    : `linear-gradient(90deg, #1a1a1a 0%, ${accentColor} 45%, #1a1a1a 100%)`;
+  const headerGradient = isDark
+    ? `linear-gradient(90deg, #fff 0%, ${accentColor} 50%, #fff 100%)`
+    : `linear-gradient(90deg, #1a1a1a 0%, ${accentColor} 50%, #1a1a1a 100%)`;
 
   return (
     <main className={`min-h-screen relative overflow-x-hidden transition-colors duration-300 ${
