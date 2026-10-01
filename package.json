@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@plausible-analytics/tracker": "^0.4.4",
+    "@react-three/drei": "^10.7.9",
+    "@react-three/fiber": "^9.8.1",
     "framer-motion": "^11.11.7",
     "next": "14.2.18",
     "react": "^18.3.1",
