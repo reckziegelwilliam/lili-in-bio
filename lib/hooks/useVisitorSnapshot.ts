@@ -1,12 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { VisitorSnapshot, VisitorSource, DeviceType, ReadingMode } from '@/types/visitor';
+import type { VisitorSnapshot, VisitorSource, DeviceType } from '@/types/visitor';
 
 const STORAGE_KEYS = {
   VISIT_COUNT: 'visitor_visit_count',
   FIRST_VISIT: 'visitor_first_visit',
-  READING_MODE: 'visitor_reading_mode',
 };
 
 function detectSource(): VisitorSource {
@@ -105,21 +104,6 @@ function prefersDarkMode(): boolean {
   return window.matchMedia('(prefers-color-scheme: dark)').matches;
 }
 
-function getStoredReadingMode(): ReadingMode | null {
-  if (typeof window === 'undefined') return null;
-  
-  try {
-    const stored = localStorage.getItem(STORAGE_KEYS.READING_MODE);
-    if (stored && ['gist', 'nerd', 'reflective'].includes(stored)) {
-      return stored as ReadingMode;
-    }
-  } catch {
-    // localStorage not available
-  }
-  
-  return null;
-}
-
 function updateVisitCount(): { count: number; isReturning: boolean } {
   if (typeof window === 'undefined') return { count: 1, isReturning: false };
   
@@ -142,63 +126,34 @@ function updateVisitCount(): { count: number; isReturning: boolean } {
   }
 }
 
-function getDefaultReadingMode(deviceType: DeviceType, source: VisitorSource): ReadingMode {
-  // Mobile users from social media likely want quick info
-  if (deviceType === 'mobile' && (source === 'instagram' || source === 'tiktok')) {
-    return 'gist';
-  }
-  
-  // Desktop users or direct visitors might want more detail
-  if (deviceType === 'desktop') {
-    return 'nerd';
-  }
-  
-  return 'gist';
-}
-
 export function useVisitorSnapshot(): VisitorSnapshot | null {
   const [snapshot, setSnapshot] = useState<VisitorSnapshot | null>(null);
-  
+
   useEffect(() => {
-    // Small delay to ensure all browser APIs are ready
     const timer = setTimeout(() => {
       const source = detectSource();
       const deviceType = detectDeviceType();
       const { count, isReturning } = updateVisitCount();
-      
-      const storedMode = getStoredReadingMode();
-      const defaultMode = getDefaultReadingMode(deviceType, source);
-      
+
       const visitorSnapshot: VisitorSnapshot = {
         source,
         deviceType,
         localHour: getLocalHour(),
         prefersDark: prefersDarkMode(),
         visitCount: count,
-        readingMode: storedMode || defaultMode,
         language: getLanguage(),
         timezone: getTimezone(),
         isReturning,
         os: detectOS(),
         browser: detectBrowser(),
       };
-      
+
       setSnapshot(visitorSnapshot);
     }, 100);
-    
+
     return () => clearTimeout(timer);
   }, []);
-  
-  return snapshot;
-}
 
-export function updateReadingMode(mode: ReadingMode): void {
-  if (typeof window === 'undefined') return;
-  
-  try {
-    localStorage.setItem(STORAGE_KEYS.READING_MODE, mode);
-  } catch {
-    // localStorage not available
-  }
+  return snapshot;
 }
 
