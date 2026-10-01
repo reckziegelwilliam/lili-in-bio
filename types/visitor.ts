@@ -85,13 +85,6 @@ export interface MiniSystem {
 }
 
 // Component prop types
-export interface GlassCardProps {
-  children: React.ReactNode;
-  className?: string;
-  accentColor?: string;
-  glowIntensity?: 'none' | 'low' | 'medium' | 'high';
-}
-
 export interface AuraBackgroundProps {
   snapshot: VisitorSnapshot;
   seed: AuraSeed;
