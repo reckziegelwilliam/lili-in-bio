@@ -14,7 +14,6 @@ An interactive portfolio page showcasing projects through a **3D force-directed 
 ### Accessible Fallback
 
 - **Semantic HTML**: Projects displayed as a complete, screenreader-friendly list for:
-  - Users on devices without WebGL support
   - Users who prefer reduced motion (`prefers-reduced-motion`)
   - Users with JavaScript disabled
 - **Progressive Enhancement**: Canvas loads on top of semantic content, with proper ARIA management
@@ -187,8 +186,8 @@ Visitor detection uses only browser APIs:
 
 Responsive and performant across all devices:
 
-- Full-screen 3D visualization on desktop and tablet
-- Semantic HTML fallback list when JavaScript is disabled, WebGL is unavailable, or `prefers-reduced-motion` is set
+- Full-screen 3D canvas on all devices, including mobile, with optimized rendering settings on touch devices
+- Semantic HTML fallback list when JavaScript is disabled or `prefers-reduced-motion` is set
 - Touch-friendly interaction with project selection
 - Responsive layout adapts to screen size and input method
 - Smooth animations respecting user preferences
