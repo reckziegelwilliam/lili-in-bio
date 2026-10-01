@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { Inter } from "next/font/google";
-import { Providers } from "@/components/Providers";
 import "./globals.css";
 
 const plausibleDomain = process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN || "lili-in.bio";
@@ -66,9 +65,7 @@ export default function RootLayout({
           src="https://plausible.io/js/script.tagged-events.outbound-links.js"
           strategy="afterInteractive"
         />
-        <Providers>
-          {children}
-        </Providers>
+        {children}
         {/* Fallback for when JavaScript fails in WebView */}
         <noscript>
           <style>{`

@@ -1,69 +1,23 @@
 'use client';
 
-import { useEffect, useRef, useState, useMemo } from 'react';
-import { trackEvent } from '@/lib/utils/plausible';
+import { useEffect, useRef, useState } from 'react';
+import { SkipToContent } from '@/components/AccessibilityUtils';
+import { AccessibleProjectList } from '@/components/graph/AccessibleProjectList';
+import { GraphCanvasLoader } from '@/components/graph/GraphCanvasLoader';
+import { NodeDetailPanel } from '@/components/graph/NodeDetailPanel';
 import { useVisitorSnapshot } from '@/lib/hooks/useVisitorSnapshot';
-import { useTheme } from '@/lib/hooks/useTheme';
-import { generateVisualSeed } from '@/lib/utils/seedGenerator';
-import { generatePalette } from '@/lib/utils/paletteGenerator';
-import { AuraBackground } from '@/components/AuraBackground';
-import { ThemeToggle } from '@/components/ThemeToggle';
-import { ProjectCard } from '@/components/ProjectCard';
-import { PageLoadingState } from '@/components/LoadingStates';
-import { projectsByCategory } from '@/data/projects';
-import { getCardIntensity } from '@/lib/utils/freshness';
-import type { VisitorSnapshot } from '@/types/visitor';
-
-// Default snapshot for when detection fails (Instagram WebView, privacy browsers, etc.)
-const DEFAULT_SNAPSHOT: VisitorSnapshot = {
-  source: 'instagram', // Assume Instagram since that's the primary use case
-  deviceType: 'mobile',
-  localHour: new Date().getHours(),
-  prefersDark: true,
-  visitCount: 1,
-  readingMode: 'gist',
-  language: 'en',
-  timezone: 'UTC',
-  isReturning: false,
-  os: 'unknown',
-  browser: 'unknown',
-};
-
-// Maximum time to wait for snapshot detection before using fallback
-const SNAPSHOT_TIMEOUT_MS = 1500;
+import { trackEvent } from '@/lib/utils/plausible';
+import type { GraphNode } from '@/lib/graph/types';
 
 export default function Home() {
-  const detectedSnapshot = useVisitorSnapshot();
-  const { isDark, mounted } = useTheme();
-  const [isLoading, setIsLoading] = useState(true);
-  const [timedOut, setTimedOut] = useState(false);
+  const snapshot = useVisitorSnapshot();
+  const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
+  const [canvasActive, setCanvasActive] = useState(false);
+  const [listVisible, setListVisible] = useState(false);
   const visitTracked = useRef(false);
+  const listWrapperRef = useRef<HTMLDivElement>(null);
+  const listInert = canvasActive && !listVisible;
 
-  // Fallback timeout - don't block rendering forever if detection fails
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setTimedOut(true);
-      setIsLoading(false);
-    }, SNAPSHOT_TIMEOUT_MS);
-
-    return () => clearTimeout(timeout);
-  }, []);
-
-  // Stop loading when snapshot is detected
-  useEffect(() => {
-    if (detectedSnapshot) {
-      setIsLoading(false);
-    }
-  }, [detectedSnapshot]);
-
-  // Use detected snapshot or fallback to defaults
-  const snapshot = useMemo(() => {
-    if (detectedSnapshot) return detectedSnapshot;
-    if (timedOut) return DEFAULT_SNAPSHOT;
-    return null;
-  }, [detectedSnapshot, timedOut]);
-
-  // Fire Visit event once when snapshot is ready (props for Plausible breakdown/filters)
   useEffect(() => {
     if (!snapshot || visitTracked.current) return;
     visitTracked.current = true;
@@ -74,232 +28,76 @@ export default function Home() {
         lang: snapshot.language?.slice(0, 2) || 'en',
         returning: snapshot.isReturning ? 'yes' : 'no',
         browser: snapshot.browser || 'unknown',
-        dark: snapshot.prefersDark ? 'yes' : 'no',
       },
     });
   }, [snapshot]);
 
-  // Show loading state only briefly, with hard timeout
-  if (isLoading || !snapshot || !mounted) {
-    return <PageLoadingState />;
-  }
-
-  const seed = generateVisualSeed(snapshot);
-  const palette = generatePalette(snapshot, seed);
-  const accentColor = palette.primary;
-
-  // Theme-aware colors
-  const textPrimary = isDark ? 'text-white' : 'text-gray-900';
-  const textSecondary = isDark ? 'text-white/85' : 'text-gray-700';
-  const textMuted = isDark ? 'text-white/20' : 'text-gray-400';
-  const headerGradient = isDark
-    ? `linear-gradient(90deg, #fff 0%, ${accentColor} 50%, #fff 100%)`
-    : `linear-gradient(90deg, #1a1a1a 0%, ${accentColor} 50%, #1a1a1a 100%)`;
+  useEffect(() => {
+    const el = listWrapperRef.current;
+    if (!el) return;
+    // react-dom 18 doesn't support `inert` as a JSX prop (it strips it) — set
+    // the real DOM attribute directly so it actually works in this React version.
+    el.toggleAttribute('inert', listInert);
+  }, [listInert]);
 
   return (
-    <main className={`min-h-screen relative overflow-x-hidden transition-colors duration-300 ${
-      isDark ? 'bg-gray-950' : 'bg-gray-50'
-    }`}>
-      {/* Dynamic Aura Background */}
-      <AuraBackground snapshot={snapshot} seed={seed} palette={palette} variant="css" />
+    <main className="relative min-h-screen bg-[#05060a]">
+      <SkipToContent onFocus={() => setListVisible(true)} />
 
-      {/* Light mode overlay to soften background */}
-      {!isDark && (
-        <div className="fixed inset-0 bg-white/20 z-[1] pointer-events-none" />
+      {/* Always-rendered semantic content: SEO, screen readers, no-JS, reduced-motion. */}
+      <div ref={listWrapperRef}>
+        <AccessibleProjectList snapshot={snapshot} />
+      </div>
+
+      {/* Progressive enhancement: covers the list above once it mounts. Pointer events
+          are only enabled while the canvas is actually active, so it never blocks clicks
+          on the list underneath (reduced motion, no-JS, or the pre-activation window). */}
+      <div
+        className={`fixed inset-0 z-30 ${
+          listVisible ? 'hidden' : canvasActive ? 'pointer-events-auto' : 'pointer-events-none'
+        }`}
+      >
+        <GraphCanvasLoader
+          focusedNodeId={selectedNode?.id ?? null}
+          // Clicking the hub (no project) clears the selection the same way
+          // closing the detail panel does — both flow through `focusedNodeId`
+          // becoming null, which is what drives the camera back to the overview.
+          onNodeSelect={(node) => setSelectedNode(node.kind === 'hub' ? null : node)}
+          onActiveChange={setCanvasActive}
+        />
+      </div>
+
+      {selectedNode?.project && (
+        <NodeDetailPanel
+          project={selectedNode.project}
+          snapshot={snapshot}
+          onClose={() => setSelectedNode(null)}
+        />
       )}
 
-      {/* Content */}
-      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center">
-        <div className="w-full max-w-md px-6 py-12">
-          {/* Theme Toggle */}
-          <div className="flex justify-center mb-8 animate-fade-in">
-            <ThemeToggle accentColor={accentColor} />
-          </div>
+      <button
+        type="button"
+        onClick={() => setListVisible((v) => !v)}
+        className="fixed bottom-4 left-4 z-40 rounded-full bg-white/10 px-4 py-2 text-xs font-medium text-white/70 transition-colors hover:bg-white/20 hover:text-white"
+      >
+        {listVisible ? 'View 3D graph' : 'View as list'}
+      </button>
 
-          {/* Header */}
-          <div className="text-center mb-12 animate-fade-in" style={{ animationDelay: '0.05s' }}>
-            <h1 
-              className="text-6xl md:text-7xl font-black tracking-tighter bg-clip-text text-transparent"
-              style={{ 
-                backgroundImage: headerGradient,
-                filter: `drop-shadow(0 0 30px ${accentColor}50) drop-shadow(0 0 60px ${accentColor}30)`,
-                WebkitTextStroke: isDark ? '1px rgba(255,255,255,0.3)' : '1px rgba(0,0,0,0.2)',
-              }}
-            >
-              lili.in.bio
-            </h1>
-          </div>
-
-          {/* Project Sections, grouped by category */}
-          <div className="space-y-8">
-            {projectsByCategory.map(({ category, projects: group }, groupIndex) => {
-              const sectionDelay = `${0.1 + groupIndex * 0.05}s`;
-              return (
-                <div key={category}>
-                  {/* Category section break */}
-                  <div
-                    className="flex items-center gap-3 mb-4 animate-fade-in"
-                    style={{ animationDelay: sectionDelay }}
-                  >
-                    <span className={`h-px flex-1 ${isDark ? 'bg-white/10' : 'bg-black/10'}`} />
-                    <span
-                      className={`text-[11px] font-bold uppercase tracking-[0.2em] ${
-                        isDark ? 'text-white/40' : 'text-gray-400'
-                      }`}
-                    >
-                      {category}
-                    </span>
-                    <span className={`h-px flex-1 ${isDark ? 'bg-white/10' : 'bg-black/10'}`} />
-                  </div>
-
-                  <div className="space-y-4">
-                    {group.map((project, indexInGroup) => {
-                      const delay = `${0.15 + groupIndex * 0.05 + indexInGroup * 0.1}s`;
-                      return project.enabled ? (
-                        <ProjectCard
-                          key={project.name}
-                          project={project}
-                          isDark={isDark}
-                          accentColor={accentColor}
-                          textPrimary={textPrimary}
-                          textSecondary={textSecondary}
-                          textMuted={textMuted}
-                          animationDelay={delay}
-                          onLinkClick={() =>
-                            trackEvent('Link click', {
-                              props: {
-                                destination: project.name,
-                                source: snapshot.source,
-                                device: snapshot.deviceType,
-                              },
-                            })
-                          }
-                          onSubLinkClick={(subName) =>
-                            trackEvent('Link click', {
-                              props: {
-                                destination: `${project.name} - ${subName}`,
-                                source: snapshot.source,
-                                device: snapshot.deviceType,
-                              },
-                            })
-                          }
-                        />
-                      ) : (() => {
-                        const { intensity } = getCardIntensity(project.recentImprovements);
-                        const hasGlow = intensity > 0;
-                        return (
-                          <div
-                            key={project.name}
-                            className="animate-fade-in"
-                            style={{ animationDelay: delay }}
-                          >
-                            <div
-                              className={`relative block w-full py-5 px-6 rounded-2xl backdrop-blur-sm border text-center cursor-not-allowed overflow-hidden ${
-                                isDark
-                                  ? 'bg-black/40 border-white/10'
-                                  : 'bg-gray-100/80 border-gray-200/60'
-                              }`}
-                            >
-                              <span
-                                className={`text-lg font-medium ${hasGlow ? (isDark ? 'text-white/60' : 'text-gray-500') : textMuted}`}
-                                style={hasGlow ? {
-                                  textShadow: isDark
-                                    ? `0 0 12px ${accentColor}80, 0 0 30px ${accentColor}40`
-                                    : `0 0 10px ${accentColor}60, 0 0 24px ${accentColor}30`,
-                                } : undefined}
-                              >
-                                {project.name}
-                              </span>
-                              <span
-                                className={`absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium uppercase tracking-wider ${
-                                  hasGlow
-                                    ? (isDark ? 'text-white/30' : 'text-gray-400')
-                                    : (isDark ? 'text-white/15' : 'text-gray-300')
-                                }`}
-                                style={hasGlow ? {
-                                  textShadow: isDark
-                                    ? `0 0 8px ${accentColor}60`
-                                    : `0 0 6px ${accentColor}40`,
-                                } : undefined}
-                              >
-                                Soon
-                              </span>
-                            </div>
-                          </div>
-                        );
-                      })();
-                    })}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* wildready Section */}
-          <div className="mt-10 animate-fade-in" style={{ animationDelay: '0.65s' }}>
-            <div
-              className={`w-full py-6 px-6 rounded-2xl backdrop-blur-xl border-2 ${
-                isDark
-                  ? 'bg-white/10 border-orange-400/20'
-                  : 'bg-white/70 border-orange-300/30'
-              }`}
-              style={{
-                boxShadow: isDark
-                  ? '0 8px 32px rgba(0,0,0,0.3), 0 0 40px rgba(251,146,60,0.15)'
-                  : '0 8px 32px rgba(0,0,0,0.08), 0 0 30px rgba(251,146,60,0.1)',
-              }}
-            >
-              <h2
-                className={`text-2xl font-black tracking-tight text-center ${textPrimary}`}
-                style={{
-                  textShadow: isDark
-                    ? '0 0 20px rgba(251,146,60,0.6), 0 0 40px rgba(251,146,60,0.3)'
-                    : '0 0 16px rgba(251,146,60,0.4), 0 0 32px rgba(251,146,60,0.2)',
-                }}
-              >
-                wildready
-              </h2>
-              <p className={`text-sm mt-2 text-center font-medium leading-relaxed ${textSecondary}`}>
-                California wildfire-readiness tool that helps homeowners assess, plan, and document home hardening — then export an insurer-ready proof packet.
-              </p>
-              <p className={`text-xs mt-3 text-center italic ${
-                isDark ? 'text-orange-300/60' : 'text-orange-600/60'
-              }`}>
-                Currently being piloted by select counties in California
-              </p>
-            </div>
-          </div>
-
-          {/* GitHub Link */}
-          <div className="mt-6 animate-fade-in" style={{ animationDelay: '0.75s' }}>
-            <a
-              href="https://github.com/reckziegelwilliam"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() =>
-                trackEvent('Link click', {
-                  props: {
-                    destination: 'GitHub',
-                    source: snapshot.source,
-                    device: snapshot.deviceType,
-                  },
-                })
-              }
-              className={`flex items-center justify-center gap-3 w-full py-4 px-6 rounded-2xl backdrop-blur-sm border text-base font-medium transition-all duration-200 ${
-                isDark 
-                  ? 'bg-white/10 border-white/15 text-white/70 hover:bg-white/15 hover:text-white' 
-                  : 'bg-black/5 border-gray-200 text-gray-600 hover:bg-black/10 hover:text-gray-900'
-              }`}
-            >
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-              </svg>
-              GitHub
-            </a>
-          </div>
-        </div>
-      </div>
+      <a
+        href="https://github.com/reckziegelwilliam"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="GitHub"
+        className="fixed bottom-4 right-4 z-40 rounded-full bg-white/10 p-3 text-white/70 transition-colors hover:bg-white/20 hover:text-white"
+      >
+        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+          <path
+            fillRule="evenodd"
+            clipRule="evenodd"
+            d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+          />
+        </svg>
+      </a>
     </main>
   );
 }
-
