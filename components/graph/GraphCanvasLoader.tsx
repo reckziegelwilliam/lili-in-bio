@@ -14,11 +14,12 @@ const GraphScene = dynamic(() => import('./GraphScene').then((mod) => mod.GraphS
 });
 
 interface GraphCanvasLoaderProps {
+  focusedNodeId: string | null;
   onNodeSelect: (node: GraphNode) => void;
   onActiveChange: (active: boolean) => void;
 }
 
-export function GraphCanvasLoader({ onNodeSelect, onActiveChange }: GraphCanvasLoaderProps) {
+export function GraphCanvasLoader({ focusedNodeId, onNodeSelect, onActiveChange }: GraphCanvasLoaderProps) {
   const [isCoarsePointer, setIsCoarsePointer] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [skipCanvas, setSkipCanvas] = useState<boolean | null>(null);
@@ -41,6 +42,7 @@ export function GraphCanvasLoader({ onNodeSelect, onActiveChange }: GraphCanvasL
     <GraphScene
       isCoarsePointer={isCoarsePointer}
       prefersReducedMotion={prefersReducedMotion}
+      focusedNodeId={focusedNodeId}
       onNodeSelect={onNodeSelect}
     />
   );

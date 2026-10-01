@@ -58,7 +58,11 @@ export default function Home() {
         }`}
       >
         <GraphCanvasLoader
-          onNodeSelect={(node) => node.project && setSelectedNode(node)}
+          focusedNodeId={selectedNode?.id ?? null}
+          // Clicking the hub (no project) clears the selection the same way
+          // closing the detail panel does — both flow through `focusedNodeId`
+          // becoming null, which is what drives the camera back to the overview.
+          onNodeSelect={(node) => setSelectedNode(node.kind === 'hub' ? null : node)}
           onActiveChange={setCanvasActive}
         />
       </div>

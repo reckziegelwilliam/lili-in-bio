@@ -1,19 +1,23 @@
 'use client';
 
-import { useMemo, useRef, type ElementRef } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { useEffect, useMemo, useRef, useState, type ElementRef } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
+import { Vector3 } from 'three';
 import { buildGraph } from '@/lib/graph/buildGraph';
 import { runForceSimulation } from '@/lib/graph/forceSimulation';
 import { computeNodeEmphasis } from '@/lib/graph/nodeEmphasis';
 import { GraphNodeMesh } from './GraphNode';
 import { GraphEdgeMesh } from './GraphEdge';
-import type { GraphNode } from '@/lib/graph/types';
+import type { Graph, GraphNode } from '@/lib/graph/types';
 
 interface GraphSceneProps {
   isCoarsePointer: boolean;
   prefersReducedMotion: boolean;
+  /** The currently-selected project node's id (NodeDetailPanel is open for it),
+   *  or null when nothing is selected. Drives the camera focus animation. */
+  focusedNodeId: string | null;
   onNodeSelect: (node: GraphNode) => void;
 }
 
@@ -21,21 +25,9 @@ const BASE_HUB_EMISSIVE = 0.5;
 const BASE_PROJECT_EMISSIVE = 1.1;
 const NEUTRAL_EMPHASIS = { scaleMultiplier: 1, emissiveMultiplier: 1 };
 
-export function GraphScene({ isCoarsePointer, prefersReducedMotion, onNodeSelect }: GraphSceneProps) {
+export function GraphScene({ isCoarsePointer, prefersReducedMotion, focusedNodeId, onNodeSelect }: GraphSceneProps) {
   const graph = useMemo(() => buildGraph(), []);
   const positions = useMemo(() => runForceSimulation(graph), [graph]);
-  const segments = isCoarsePointer ? 20 : 32;
-  const controlsRef = useRef<ElementRef<typeof OrbitControls>>(null);
-
-  // The hub has no project to open — clicking it recenters the camera instead,
-  // restoring the default view (useful after dragging/zooming around).
-  function handleNodeSelect(node: GraphNode) {
-    if (node.kind === 'hub') {
-      controlsRef.current?.reset();
-      return;
-    }
-    onNodeSelect(node);
-  }
 
   // Derive the camera distance, orbit limits, and fog range from the actual
   // settled bounding radius of the graph, rather than hardcoded constants
@@ -53,13 +45,106 @@ export function GraphScene({ isCoarsePointer, prefersReducedMotion, onNodeSelect
   // ~90% of the frame on both a 1280x800 desktop viewport and 390x844 portrait
   // mobile, with margin for the nodes' own radius and fog falloff.
   const cameraDistance = Math.max(17, maxRadius * 5.5);
+  const defaultCameraPosition = useMemo<[number, number, number]>(
+    () => [0, cameraDistance * 0.1, cameraDistance],
+    [cameraDistance],
+  );
 
   return (
     <Canvas
       dpr={[1, isCoarsePointer ? 1.5 : 2]}
       gl={{ antialias: !isCoarsePointer }}
-      camera={{ position: [0, cameraDistance * 0.1, cameraDistance], fov: 45 }}
+      camera={{ position: defaultCameraPosition, fov: 45 }}
     >
+      <SceneContent
+        graph={graph}
+        positions={positions}
+        isCoarsePointer={isCoarsePointer}
+        prefersReducedMotion={prefersReducedMotion}
+        focusedNodeId={focusedNodeId}
+        cameraDistance={cameraDistance}
+        onNodeSelect={onNodeSelect}
+      />
+    </Canvas>
+  );
+}
+
+interface SceneContentProps {
+  graph: Graph;
+  positions: Record<string, { x: number; y: number; z: number }>;
+  isCoarsePointer: boolean;
+  prefersReducedMotion: boolean;
+  focusedNodeId: string | null;
+  cameraDistance: number;
+  onNodeSelect: (node: GraphNode) => void;
+}
+
+// How quickly the camera eases toward a new focus point each frame (simple
+// per-frame lerp, not delta-time-corrected — fine at typical 60fps+ refresh
+// rates for a short, one-off transition like this). Zooming in is snappier;
+// zooming back out to the overview is slower and more graceful.
+const FOCUS_EASE = 0.12;
+const UNFOCUS_EASE = 0.06;
+const FLY_DONE_EPSILON = 0.05;
+
+function SceneContent({
+  graph,
+  positions,
+  isCoarsePointer,
+  prefersReducedMotion,
+  focusedNodeId,
+  cameraDistance,
+  onNodeSelect,
+}: SceneContentProps) {
+  const segments = isCoarsePointer ? 20 : 32;
+  const controlsRef = useRef<ElementRef<typeof OrbitControls>>(null);
+  const { camera } = useThree();
+  const flyTarget = useRef<{ position: Vector3; lookAt: Vector3; ease: number } | null>(null);
+  const [isFlying, setIsFlying] = useState(false);
+
+  // Comfortably inside [minDistance, maxDistance] below (0.4x–2x) so OrbitControls
+  // never yanks the camera back out right after a focus transition completes.
+  const focusDistance = cameraDistance * 0.45;
+
+  function flyTo(lookAt: Vector3, distance: number, ease: number) {
+    const controls = controlsRef.current;
+    if (!controls) return;
+    let offset = camera.position.clone().sub(controls.target);
+    if (offset.lengthSq() < 1e-6) offset = new Vector3(0, 0.15, 1);
+    const position = lookAt.clone().add(offset.normalize().multiplyScalar(distance));
+    flyTarget.current = { position, lookAt, ease };
+    setIsFlying(true);
+  }
+
+  function flyToDefault() {
+    flyTo(new Vector3(0, 0, 0), cameraDistance, UNFOCUS_EASE);
+  }
+
+  useEffect(() => {
+    if (focusedNodeId) {
+      const nodePos = positions[focusedNodeId];
+      if (nodePos) flyTo(new Vector3(nodePos.x, nodePos.y, nodePos.z), focusDistance, FOCUS_EASE);
+    } else {
+      flyToDefault();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusedNodeId]);
+
+  useFrame(() => {
+    const target = flyTarget.current;
+    const controls = controlsRef.current;
+    if (!target || !controls) return;
+    camera.position.lerp(target.position, target.ease);
+    controls.target.lerp(target.lookAt, target.ease);
+    controls.update();
+    if (camera.position.distanceTo(target.position) < FLY_DONE_EPSILON) {
+      flyTarget.current = null;
+      setIsFlying(false);
+    }
+  });
+
+  return (
+    <>
       <color attach="background" args={['#05060a']} />
       {/* Fog's far plane must stay comfortably beyond OrbitControls' maxDistance
           (2x) — otherwise zooming out fully pushes every node past the fog's far
@@ -90,15 +175,17 @@ export function GraphScene({ isCoarsePointer, prefersReducedMotion, onNodeSelect
             emissiveMultiplier={emphasis.emissiveMultiplier}
             baseEmissiveIntensity={node.kind === 'hub' ? BASE_HUB_EMISSIVE : BASE_PROJECT_EMISSIVE}
             segments={segments}
-            onSelect={handleNodeSelect}
+            alwaysShowLabel={isCoarsePointer}
+            onSelect={onNodeSelect}
           />
         );
       })}
 
       <OrbitControls
         ref={controlsRef}
+        enabled={!isFlying}
         enablePan={false}
-        autoRotate={!prefersReducedMotion}
+        autoRotate={!prefersReducedMotion && !isFlying}
         autoRotateSpeed={0.6}
         minDistance={cameraDistance * 0.4}
         maxDistance={cameraDistance * 2}
@@ -112,6 +199,6 @@ export function GraphScene({ isCoarsePointer, prefersReducedMotion, onNodeSelect
           radius={0.5}
         />
       </EffectComposer>
-    </Canvas>
+    </>
   );
 }
