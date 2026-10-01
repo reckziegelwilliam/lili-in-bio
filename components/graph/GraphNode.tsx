@@ -1,6 +1,7 @@
 'use client';
 
 import '@react-three/fiber';
+import type { ThreeEvent } from '@react-three/fiber';
 import type { GraphNode as GraphNodeData } from '@/lib/graph/types';
 
 interface GraphNodeMeshProps {
@@ -25,7 +26,7 @@ export function GraphNodeMesh({
   return (
     <mesh
       position={[node.position.x, node.position.y, node.position.z]}
-      onClick={(event: any) => {
+      onClick={(event: ThreeEvent<MouseEvent>) => {
         event.stopPropagation();
         onSelect(node);
       }}
