@@ -14,6 +14,7 @@ export default function Home() {
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
   const [canvasActive, setCanvasActive] = useState(false);
   const visitTracked = useRef(false);
+  const listWrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!snapshot || visitTracked.current) return;
@@ -29,12 +30,20 @@ export default function Home() {
     });
   }, [snapshot]);
 
+  useEffect(() => {
+    const el = listWrapperRef.current;
+    if (!el) return;
+    // react-dom 18 doesn't support `inert` as a JSX prop (it strips it) — set
+    // the real DOM attribute directly so it actually works in this React version.
+    el.toggleAttribute('inert', canvasActive);
+  }, [canvasActive]);
+
   return (
     <main className="relative min-h-screen bg-[#05060a]">
       <SkipToContent />
 
       {/* Always-rendered semantic content: SEO, screen readers, no-JS, reduced-motion. */}
-      <div {...{ inert: canvasActive ? true : undefined }}>
+      <div ref={listWrapperRef}>
         <AccessibleProjectList />
       </div>
 
