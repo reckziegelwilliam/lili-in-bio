@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useRef, type ElementRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
@@ -25,6 +25,17 @@ export function GraphScene({ isCoarsePointer, prefersReducedMotion, onNodeSelect
   const graph = useMemo(() => buildGraph(), []);
   const positions = useMemo(() => runForceSimulation(graph), [graph]);
   const segments = isCoarsePointer ? 20 : 32;
+  const controlsRef = useRef<ElementRef<typeof OrbitControls>>(null);
+
+  // The hub has no project to open — clicking it recenters the camera instead,
+  // restoring the default view (useful after dragging/zooming around).
+  function handleNodeSelect(node: GraphNode) {
+    if (node.kind === 'hub') {
+      controlsRef.current?.reset();
+      return;
+    }
+    onNodeSelect(node);
+  }
 
   // Derive the camera distance, orbit limits, and fog range from the actual
   // settled bounding radius of the graph, rather than hardcoded constants
@@ -79,12 +90,13 @@ export function GraphScene({ isCoarsePointer, prefersReducedMotion, onNodeSelect
             emissiveMultiplier={emphasis.emissiveMultiplier}
             baseEmissiveIntensity={node.kind === 'hub' ? BASE_HUB_EMISSIVE : BASE_PROJECT_EMISSIVE}
             segments={segments}
-            onSelect={onNodeSelect}
+            onSelect={handleNodeSelect}
           />
         );
       })}
 
       <OrbitControls
+        ref={controlsRef}
         enablePan={false}
         autoRotate={!prefersReducedMotion}
         autoRotateSpeed={0.6}
