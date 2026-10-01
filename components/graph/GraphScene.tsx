@@ -50,7 +50,11 @@ export function GraphScene({ isCoarsePointer, prefersReducedMotion, onNodeSelect
       camera={{ position: [0, cameraDistance * 0.1, cameraDistance], fov: 45 }}
     >
       <color attach="background" args={['#05060a']} />
-      <fog attach="fog" args={['#05060a', 15, cameraDistance * 1.8]} />
+      {/* Fog's far plane must stay comfortably beyond OrbitControls' maxDistance
+          (2x) — otherwise zooming out fully pushes every node past the fog's far
+          plane, and since fog color matches the scene background, the whole
+          graph fades to indistinguishable-from-empty. */}
+      <fog attach="fog" args={['#05060a', cameraDistance * 0.15, cameraDistance * 2.3]} />
 
       <ambientLight intensity={0.3} />
       <directionalLight position={[6, 8, 10]} intensity={1.4} />
