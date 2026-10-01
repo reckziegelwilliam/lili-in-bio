@@ -22,7 +22,7 @@ An interactive portfolio page showcasing projects through a **3D force-directed 
 ### Project Details
 
 - **Click-to-Expand**: Select any project to view full details in a modal panel
-- **Rich Metadata**: Each project includes description, technologies, links, and category relationships
+- **Rich Metadata**: Each project includes description, optional thumbnails and subLinks, and category relationships
 - **Ambient Analytics**: Plausible integration to track visitor engagement without cookies or tracking pixels
 
 ## 🚀 Quick Start
@@ -85,7 +85,7 @@ npm run dev
 ├── lib/
 │   ├── graph/
 │   │   ├── buildGraph.ts         # Graph data structure
-│   │   ├── forceSimulation.ts    # D3 force simulation
+│   │   ├── forceSimulation.ts    # Custom spring/repulsion force simulation
 │   │   ├── edgeGeometry.ts       # Edge mesh generation
 │   │   ├── nodeEmphasis.ts       # Node focus/glow effects
 │   │   ├── categoryColors.ts     # Color assignment by category
@@ -93,6 +93,7 @@ npm run dev
 │   ├── hooks/
 │   │   └── useVisitorSnapshot.ts # Visitor detection
 │   └── utils/
+│       ├── freshness.ts          # Freshness/recency intensity for node emphasis
 │       └── plausible.ts          # Analytics tracking
 ├── data/
 │   └── projects.ts               # Project and category data
@@ -110,36 +111,41 @@ npm run dev
 Edit the projects and categories in `data/projects.ts`:
 
 ```typescript
-export const PROJECTS: Project[] = [
+export const projects: Project[] = [
   {
-    id: 'project-id',
     name: 'Project Name',
-    description: 'Brief description...',
-    category: 'category-name',
-    technologies: ['Tech1', 'Tech2'],
-    links: {
-      github: 'https://...',
-      demo: 'https://...',
-    },
+    href: 'https://example.com',
+    enabled: true,
+    category: 'Climate & Environment',
+    description: 'Brief description of the project...',
+    thumbnail: '/images/project-thumb.png',
+    subLinks: [
+      { name: 'GitHub', href: 'https://github.com/...', description: 'Source code' },
+      { name: 'Demo', href: 'https://demo.example.com' },
+    ],
   },
-  // ...
-];
-
-export const CATEGORIES: Category[] = [
-  { id: 'category-name', label: 'Category Label', color: '#ff6b9d' },
   // ...
 ];
 ```
 
 ### Adjusting Graph Colors
 
-In `lib/graph/categoryColors.ts`, update the color mappings for project categories:
+To customize colors for project categories, edit the `CATEGORY_COLORS` mapping in `lib/graph/categoryColors.ts`:
 
 ```typescript
-export const CATEGORY_COLORS: Record<string, string> = {
-  'category-name': '#ff6b9d',
-  // ...
+// In lib/graph/categoryColors.ts
+const CATEGORY_COLORS: Record<ProjectCategory, string> = {
+  'Climate & Environment': '#5fd6a8',
+  'Disaster Recovery': '#ffb86b',
+  'Directory': '#8fe3ff',
+  'Writing': '#ff8fd6',
+  'Tools': '#c88fff',
 };
+
+// Access via the exported getCategoryColor function
+export function getCategoryColor(category: ProjectCategory): string {
+  return CATEGORY_COLORS[category];
+}
 ```
 
 ### Customizing Bloom and Effects
@@ -156,7 +162,7 @@ In `components/graph/GraphScene.tsx`, adjust:
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
 - **3D Graphics**: Three.js + react-three-fiber
-- **Physics**: D3 force simulation
+- **Physics**: Custom spring/repulsion force simulation
 - **Analytics**: Plausible (privacy-friendly, no cookies)
 - **Deployment**: Vercel (recommended)
 
@@ -182,7 +188,7 @@ Visitor detection uses only browser APIs:
 Responsive and performant across all devices:
 
 - Full-screen 3D visualization on desktop and tablet
-- Semantic HTML fallback list on mobile and reduced-motion scenarios
+- Semantic HTML fallback list when JavaScript is disabled, WebGL is unavailable, or `prefers-reduced-motion` is set
 - Touch-friendly interaction with project selection
 - Responsive layout adapts to screen size and input method
 - Smooth animations respecting user preferences
