@@ -13,8 +13,10 @@ export default function Home() {
   const snapshot = useVisitorSnapshot();
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
   const [canvasActive, setCanvasActive] = useState(false);
+  const [listVisible, setListVisible] = useState(false);
   const visitTracked = useRef(false);
   const listWrapperRef = useRef<HTMLDivElement>(null);
+  const listInert = canvasActive && !listVisible;
 
   useEffect(() => {
     if (!snapshot || visitTracked.current) return;
@@ -35,20 +37,26 @@ export default function Home() {
     if (!el) return;
     // react-dom 18 doesn't support `inert` as a JSX prop (it strips it) — set
     // the real DOM attribute directly so it actually works in this React version.
-    el.toggleAttribute('inert', canvasActive);
-  }, [canvasActive]);
+    el.toggleAttribute('inert', listInert);
+  }, [listInert]);
 
   return (
     <main className="relative min-h-screen bg-[#05060a]">
-      <SkipToContent />
+      <SkipToContent onFocus={() => setListVisible(true)} />
 
       {/* Always-rendered semantic content: SEO, screen readers, no-JS, reduced-motion. */}
       <div ref={listWrapperRef}>
-        <AccessibleProjectList />
+        <AccessibleProjectList snapshot={snapshot} />
       </div>
 
-      {/* Progressive enhancement: covers the list above once it mounts. */}
-      <div className="fixed inset-0 z-30">
+      {/* Progressive enhancement: covers the list above once it mounts. Pointer events
+          are only enabled while the canvas is actually active, so it never blocks clicks
+          on the list underneath (reduced motion, no-JS, or the pre-activation window). */}
+      <div
+        className={`fixed inset-0 z-30 ${
+          listVisible ? 'hidden' : canvasActive ? 'pointer-events-auto' : 'pointer-events-none'
+        }`}
+      >
         <GraphCanvasLoader
           onNodeSelect={(node) => node.project && setSelectedNode(node)}
           onActiveChange={setCanvasActive}
@@ -62,6 +70,14 @@ export default function Home() {
           onClose={() => setSelectedNode(null)}
         />
       )}
+
+      <button
+        type="button"
+        onClick={() => setListVisible((v) => !v)}
+        className="fixed bottom-4 left-4 z-40 rounded-full bg-white/10 px-4 py-2 text-xs font-medium text-white/70 transition-colors hover:bg-white/20 hover:text-white"
+      >
+        {listVisible ? 'View 3D graph' : 'View as list'}
+      </button>
 
       <a
         href="https://github.com/reckziegelwilliam"

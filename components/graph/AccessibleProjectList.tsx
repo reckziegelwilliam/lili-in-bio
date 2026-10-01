@@ -1,8 +1,18 @@
+'use client';
+
 import { VisuallyHidden } from '@/components/AccessibilityUtils';
 import { projects } from '@/data/projects';
+import { trackEvent } from '@/lib/utils/plausible';
+import type { VisitorSnapshot } from '@/types/visitor';
 
-export function AccessibleProjectList() {
+interface AccessibleProjectListProps {
+  snapshot?: VisitorSnapshot | null;
+}
+
+export function AccessibleProjectList({ snapshot }: AccessibleProjectListProps = {}) {
   const enabled = projects.filter((p) => p.enabled);
+  const source = snapshot?.source ?? 'direct';
+  const device = snapshot?.deviceType ?? 'desktop';
 
   return (
     <nav
@@ -20,6 +30,9 @@ export function AccessibleProjectList() {
               href={project.href}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() =>
+                trackEvent('Link click', { props: { destination: project.name, source, device } })
+              }
               className="block rounded-2xl border border-white/15 bg-white/5 px-6 py-4 text-center text-white transition-colors hover:bg-white/10"
             >
               <span className="block text-lg font-bold">{project.name}</span>

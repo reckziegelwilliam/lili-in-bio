@@ -3,10 +3,11 @@
 /**
  * Skip to main content link for keyboard navigation
  */
-export function SkipToContent() {
+export function SkipToContent({ onFocus }: { onFocus?: () => void } = {}) {
   return (
     <a
       href="#main-content"
+      onFocus={onFocus}
       className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-white focus:text-black focus:rounded-lg focus:shadow-lg"
     >
       Skip to main content

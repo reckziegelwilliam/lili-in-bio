@@ -26,14 +26,31 @@ export function GraphScene({ isCoarsePointer, prefersReducedMotion, onNodeSelect
   const positions = useMemo(() => runForceSimulation(graph), [graph]);
   const segments = isCoarsePointer ? 20 : 32;
 
+  // Derive the camera distance, orbit limits, and fog range from the actual
+  // settled bounding radius of the graph, rather than hardcoded constants
+  // tuned for a different (smaller) layout. This keeps every node in frame
+  // even as the force simulation's real output grows or shrinks.
+  const maxRadius = useMemo(
+    () => Math.max(...Object.values(positions).map((p) => Math.hypot(p.x, p.y, p.z))),
+    [positions],
+  );
+  // 2.4x the settled bounding radius (the starting formula) still clips several
+  // nodes horizontally on narrow/portrait aspect ratios (verified against the
+  // real 9-project force-simulation output, which settles at maxRadius ~15.3 —
+  // a PerspectiveCamera projection check found nodes landing outside [-1, 1]
+  // NDC at 2.4x–4.5x on a 390x844 viewport). 5.5x keeps every node within
+  // ~90% of the frame on both a 1280x800 desktop viewport and 390x844 portrait
+  // mobile, with margin for the nodes' own radius and fog falloff.
+  const cameraDistance = Math.max(17, maxRadius * 5.5);
+
   return (
     <Canvas
       dpr={[1, isCoarsePointer ? 1.5 : 2]}
       gl={{ antialias: !isCoarsePointer }}
-      camera={{ position: [0, 1.5, 17], fov: 45 }}
+      camera={{ position: [0, cameraDistance * 0.1, cameraDistance], fov: 45 }}
     >
       <color attach="background" args={['#05060a']} />
-      <fog attach="fog" args={['#05060a', 15, 40]} />
+      <fog attach="fog" args={['#05060a', 15, cameraDistance * 1.8]} />
 
       <ambientLight intensity={0.3} />
       <directionalLight position={[6, 8, 10]} intensity={1.4} />
@@ -67,8 +84,8 @@ export function GraphScene({ isCoarsePointer, prefersReducedMotion, onNodeSelect
         enablePan={false}
         autoRotate={!prefersReducedMotion}
         autoRotateSpeed={0.6}
-        minDistance={8}
-        maxDistance={30}
+        minDistance={cameraDistance * 0.4}
+        maxDistance={cameraDistance * 2}
       />
 
       <EffectComposer>
