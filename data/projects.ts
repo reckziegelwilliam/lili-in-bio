@@ -62,7 +62,7 @@ export const projects: Project[] = [
   {
     name: 'response desk',
     href: 'https://app.responsedesk.org',
-    enabled: true,
+    enabled: false, // temporarily disabled: responsedesk.org domain on registrar clientHold
     category: 'Disaster Recovery',
     description: 'turns an official FEMA or insurer notice into a plain-language checklist and a response packet you send yourself -- free, no account',
   },
