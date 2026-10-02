@@ -46,8 +46,8 @@ export const projects: Project[] = [
     description: 'open, low-cost climate sensors for your block -- real heat & water data, piloting in an LA community garden. the project that matters most to me',
   },
   {
-    name: 'wildready (readyforthewild.com)',
-    href: 'https://readyforthewild.com',
+    name: 'wildready (readyforthewild.app)',
+    href: 'https://readyforthewild.app',
     enabled: true,
     category: 'Climate & Environment',
     description: 'wildfire-readiness tool for homeowners -- assess & document home hardening, then export an insurer-ready proof packet. piloting with select CA counties',
