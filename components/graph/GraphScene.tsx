@@ -25,6 +25,16 @@ const BASE_HUB_EMISSIVE = 0.5;
 const BASE_PROJECT_EMISSIVE = 1.1;
 const NEUTRAL_EMPHASIS = { scaleMultiplier: 1, emissiveMultiplier: 1 };
 
+// How much bigger a node's invisible raycast target is than its visible
+// sphere. At the default camera distance a project node's true radius (0.5
+// world units) projects to roughly a 10px-wide circle on screen — nowhere
+// near enough margin for mouse aim, let alone a fingertip. Touch gets more
+// padding than mouse since a finger's contact point is far less precise
+// than a cursor tip. Tuned against the live scene's node spacing: generous
+// enough to fix "have to zoom in to click anything," not so generous that
+// the closest-together nodes' hit zones start overlapping each other.
+const HIT_RADIUS_MULTIPLIER = { mouse: 3, touch: 4.5 } as const;
+
 export function GraphScene({ isCoarsePointer, prefersReducedMotion, focusedNodeId, onNodeSelect }: GraphSceneProps) {
   const graph = useMemo(() => buildGraph(), []);
   const positions = useMemo(() => runForceSimulation(graph), [graph]);
@@ -97,6 +107,7 @@ function SceneContent({
   onNodeSelect,
 }: SceneContentProps) {
   const segments = isCoarsePointer ? 20 : 32;
+  const hitRadiusMultiplier = isCoarsePointer ? HIT_RADIUS_MULTIPLIER.touch : HIT_RADIUS_MULTIPLIER.mouse;
   const controlsRef = useRef<ElementRef<typeof OrbitControls>>(null);
   const { camera } = useThree();
   const flyTarget = useRef<{ position: Vector3; lookAt: Vector3; ease: number } | null>(null);
@@ -175,6 +186,7 @@ function SceneContent({
             emissiveMultiplier={emphasis.emissiveMultiplier}
             baseEmissiveIntensity={node.kind === 'hub' ? BASE_HUB_EMISSIVE : BASE_PROJECT_EMISSIVE}
             segments={segments}
+            hitRadiusMultiplier={hitRadiusMultiplier}
             alwaysShowLabel={isCoarsePointer}
             onSelect={onNodeSelect}
           />
