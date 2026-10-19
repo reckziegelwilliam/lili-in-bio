@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import type { Project } from '@/data/projects';
-import { trackEvent } from '@/lib/utils/plausible';
+import { projectClickProps, trackEvent } from '@/lib/utils/plausible';
 import type { VisitorSnapshot } from '@/types/visitor';
 
 interface NodeDetailPanelProps {
@@ -16,13 +16,11 @@ export function NodeDetailPanel({ project, snapshot, onClose }: NodeDetailPanelP
   const device = snapshot?.deviceType ?? 'desktop';
 
   const handleOpenClick = () => {
-    trackEvent('Link click', { props: { destination: project.name, source, device } });
+    trackEvent('Link click', { props: projectClickProps(project.name, source, device) });
   };
 
   const handleSubLinkClick = (subName: string) => {
-    trackEvent('Link click', {
-      props: { destination: `${project.name} - ${subName}`, source, device },
-    });
+    trackEvent('Link click', { props: projectClickProps(`${project.name} - ${subName}`, source, device) });
   };
 
   return (

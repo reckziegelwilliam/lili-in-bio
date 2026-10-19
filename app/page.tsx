@@ -58,6 +58,7 @@ export default function Home() {
         }`}
       >
         <GraphCanvasLoader
+          visitorSource={snapshot?.source ?? null}
           focusedNodeId={selectedNode?.id ?? null}
           // Clicking the hub (no project) clears the selection the same way
           // closing the detail panel does — both flow through `focusedNodeId`

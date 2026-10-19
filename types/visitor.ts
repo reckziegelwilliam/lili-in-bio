@@ -1,4 +1,4 @@
-export type VisitorSource = 'instagram' | 'tiktok' | 'twitter' | 'direct' | 'other';
+export type VisitorSource = 'instagram' | 'tiktok' | 'x' | 'direct' | 'other';
 export type DeviceType = 'mobile' | 'tablet' | 'desktop';
 
 export interface VisitorSnapshot {

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { VisitorSnapshot, VisitorSource, DeviceType } from '@/types/visitor';
+import { detectSourceFrom } from '@/lib/visitor/detectSource';
 
 const STORAGE_KEYS = {
   VISIT_COUNT: 'visitor_visit_count',
@@ -10,25 +11,11 @@ const STORAGE_KEYS = {
 
 function detectSource(): VisitorSource {
   if (typeof window === 'undefined') return 'direct';
-  
-  const referrer = document.referrer.toLowerCase();
-  const urlParams = new URLSearchParams(window.location.search);
-  const utmSource = urlParams.get('utm_source')?.toLowerCase();
-  
-  if (referrer.includes('instagram') || utmSource === 'instagram' || urlParams.has('igshid')) {
-    return 'instagram';
-  }
-  if (referrer.includes('tiktok') || utmSource === 'tiktok') {
-    return 'tiktok';
-  }
-  if (referrer.includes('twitter') || referrer.includes('t.co') || utmSource === 'twitter') {
-    return 'twitter';
-  }
-  if (referrer === '' || referrer.includes(window.location.hostname)) {
-    return 'direct';
-  }
-  
-  return 'other';
+  return detectSourceFrom({
+    referrer: document.referrer,
+    search: window.location.search,
+    hostname: window.location.hostname,
+  });
 }
 
 function detectDeviceType(): DeviceType {

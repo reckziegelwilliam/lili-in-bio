@@ -36,4 +36,16 @@ describe('computeNodeEmphasis', () => {
     expect(emphasis.scaleMultiplier).toBe(1);
     expect(emphasis.emissiveMultiplier).toBe(1);
   });
+
+  it('boosts a project meant for the visitor source', () => {
+    const emphasis = computeNodeEmphasis({ ...base, audience: ['x'] }, 'x');
+    expect(emphasis.scaleMultiplier).toBeGreaterThan(1);
+    expect(emphasis.emissiveMultiplier).toBeGreaterThan(1);
+  });
+
+  it('gives no audience boost when the source does not match', () => {
+    const emphasis = computeNodeEmphasis({ ...base, audience: ['x'] }, 'instagram');
+    expect(emphasis.scaleMultiplier).toBe(1);
+    expect(emphasis.emissiveMultiplier).toBe(1);
+  });
 });

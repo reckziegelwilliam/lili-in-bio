@@ -34,3 +34,8 @@ export function trackEvent(
     }
   });
 }
+
+/** Props for a project link click: where it goes and who clicked (`visitor_source` is the visitor's source). */
+export function projectClickProps(destination: string, source: string, device: string): Record<string, string> {
+  return { destination, source, device, visitor_source: source };
+}

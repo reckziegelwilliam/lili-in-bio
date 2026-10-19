@@ -1,8 +1,9 @@
 'use client';
 
 import { VisuallyHidden } from '@/components/AccessibilityUtils';
-import { projects } from '@/data/projects';
-import { trackEvent } from '@/lib/utils/plausible';
+import { CATEGORY_ORDER, projects } from '@/data/projects';
+import { matchesAudience, orderForVisitor } from '@/lib/projects/audience';
+import { projectClickProps, trackEvent } from '@/lib/utils/plausible';
 import type { VisitorSnapshot } from '@/types/visitor';
 
 interface AccessibleProjectListProps {
@@ -10,9 +11,13 @@ interface AccessibleProjectListProps {
 }
 
 export function AccessibleProjectList({ snapshot }: AccessibleProjectListProps = {}) {
-  const enabled = projects.filter((p) => p.enabled);
   const source = snapshot?.source ?? 'direct';
   const device = snapshot?.deviceType ?? 'desktop';
+  const enabled = orderForVisitor(
+    projects.filter((p) => p.enabled),
+    CATEGORY_ORDER,
+    snapshot?.source,
+  );
 
   return (
     <nav
@@ -30,10 +35,10 @@ export function AccessibleProjectList({ snapshot }: AccessibleProjectListProps =
               href={project.href}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={() =>
-                trackEvent('Link click', { props: { destination: project.name, source, device } })
-              }
-              className="block rounded-2xl border border-white/15 bg-white/5 px-6 py-4 text-center text-white transition-colors hover:bg-white/10"
+              onClick={() => trackEvent('Link click', { props: projectClickProps(project.name, source, device) })}
+              className={`block rounded-2xl border ${
+                matchesAudience(project, snapshot?.source) ? 'border-white/40' : 'border-white/15'
+              } bg-white/5 px-6 py-4 text-center text-white transition-colors hover:bg-white/10`}
             >
               <span className="block text-lg font-bold">{project.name}</span>
               {project.description && (

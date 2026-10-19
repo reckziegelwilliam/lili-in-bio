@@ -13,6 +13,8 @@ import { GraphEdgeMesh } from './GraphEdge';
 import type { Graph, GraphNode } from '@/lib/graph/types';
 
 interface GraphSceneProps {
+  /** The visitor's source; projects meant for it are emphasised. */
+  visitorSource: string | null;
   isCoarsePointer: boolean;
   prefersReducedMotion: boolean;
   /** The currently-selected project node's id (NodeDetailPanel is open for it),
@@ -35,7 +37,7 @@ const NEUTRAL_EMPHASIS = { scaleMultiplier: 1, emissiveMultiplier: 1 };
 // the closest-together nodes' hit zones start overlapping each other.
 const HIT_RADIUS_MULTIPLIER = { mouse: 3, touch: 4.5 } as const;
 
-export function GraphScene({ isCoarsePointer, prefersReducedMotion, focusedNodeId, onNodeSelect }: GraphSceneProps) {
+export function GraphScene({ visitorSource, isCoarsePointer, prefersReducedMotion, focusedNodeId, onNodeSelect }: GraphSceneProps) {
   const graph = useMemo(() => buildGraph(), []);
   const positions = useMemo(() => runForceSimulation(graph), [graph]);
 
@@ -67,6 +69,7 @@ export function GraphScene({ isCoarsePointer, prefersReducedMotion, focusedNodeI
       camera={{ position: defaultCameraPosition, fov: 45 }}
     >
       <SceneContent
+        visitorSource={visitorSource}
         graph={graph}
         positions={positions}
         isCoarsePointer={isCoarsePointer}
@@ -80,6 +83,7 @@ export function GraphScene({ isCoarsePointer, prefersReducedMotion, focusedNodeI
 }
 
 interface SceneContentProps {
+  visitorSource: string | null;
   graph: Graph;
   positions: Record<string, { x: number; y: number; z: number }>;
   isCoarsePointer: boolean;
@@ -98,6 +102,7 @@ const UNFOCUS_EASE = 0.06;
 const FLY_DONE_EPSILON = 0.05;
 
 function SceneContent({
+  visitorSource,
   graph,
   positions,
   isCoarsePointer,
@@ -177,7 +182,7 @@ function SceneContent({
       ))}
 
       {graph.nodes.map((node) => {
-        const emphasis = node.project ? computeNodeEmphasis(node.project) : NEUTRAL_EMPHASIS;
+        const emphasis = node.project ? computeNodeEmphasis(node.project, visitorSource) : NEUTRAL_EMPHASIS;
         return (
           <GraphNodeMesh
             key={node.id}
