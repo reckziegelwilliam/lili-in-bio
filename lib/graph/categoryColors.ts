@@ -1,4 +1,4 @@
-import type { ProjectCategory } from '@/data/projects';
+import type { ProjectCategory } from '@/data/projectTypes';
 
 const CATEGORY_COLORS: Record<ProjectCategory, string> = {
   'Climate & Environment': '#5fd6a8',
@@ -8,6 +8,9 @@ const CATEGORY_COLORS: Record<ProjectCategory, string> = {
   'Tools': '#c88fff',
 };
 
-export function getCategoryColor(category: ProjectCategory): string {
-  return CATEGORY_COLORS[category];
+/** Used for any category data/projects.json names that is not above. */
+export const NEUTRAL_CATEGORY_COLOR = '#b4bcc8';
+
+export function getCategoryColor(category: string): string {
+  return Object.hasOwn(CATEGORY_COLORS, category) ? CATEGORY_COLORS[category as ProjectCategory] : NEUTRAL_CATEGORY_COLOR;
 }
