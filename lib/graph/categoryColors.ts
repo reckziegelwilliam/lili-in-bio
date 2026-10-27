@@ -6,6 +6,7 @@ const CATEGORY_COLORS: Record<ProjectCategory, string> = {
   'Directory': '#8fe3ff',
   'Writing': '#ff8fd6',
   'Tools': '#c88fff',
+  'Games': '#8fa8ff',
 };
 
 /** Used for any category data/projects.json names that is not above. */

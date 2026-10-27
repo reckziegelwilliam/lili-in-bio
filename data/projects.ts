@@ -3,6 +3,7 @@
 // `next build` instead of rendering a wrong page. data/legacy-projects.ts holds the hand-written list it replaced.
 import raw from './projects.json';
 import { groupByCategory, parseProjectsFile } from '@/lib/projects/loadProjects';
+import { featuredProjects } from './featured';
 import type { Project } from './projectTypes';
 
 export type { Project, ProjectCategory, ProjectImprovement, ProjectSubLink, ProjectsFile } from './projectTypes';
@@ -10,8 +11,18 @@ export type { Project, ProjectCategory, ProjectImprovement, ProjectSubLink, Proj
 const file = parseProjectsFile(raw);
 
 // Controls the order sections appear on the page (public-categories.md in Pulse).
-export const CATEGORY_ORDER: string[] = file.categories;
+// Featured projects come first; their categories are added to the end of Pulse's list when Pulse doesn't have them.
+const pulseNames = new Set(file.projects.map((p) => p.name.toLowerCase()));
+const featured = featuredProjects.filter((p) => !pulseNames.has(p.name.toLowerCase()));
 
-export const projects: Project[] = file.projects;
+export const CATEGORY_ORDER: string[] = [
+  ...file.categories,
+  ...featured.map((p) => p.category).filter((c, i, all) => all.indexOf(c) === i && !file.categories.includes(c)),
+];
 
-export const projectsByCategory: { category: string; projects: Project[] }[] = groupByCategory(file);
+export const projects: Project[] = [...featured, ...file.projects];
+
+export const projectsByCategory: { category: string; projects: Project[] }[] = groupByCategory({
+  categories: CATEGORY_ORDER,
+  projects,
+});

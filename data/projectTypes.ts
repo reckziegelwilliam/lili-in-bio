@@ -17,6 +17,7 @@ export const KNOWN_CATEGORIES = [
   'Directory',
   'Writing',
   'Tools',
+  'Games',
 ] as const;
 
 export type ProjectCategory = (typeof KNOWN_CATEGORIES)[number];
@@ -33,6 +34,14 @@ export interface Project {
   subLinks?: ProjectSubLink[];
   /** Visitor sources this project is emphasised for (`x`, `instagram`, `climate`); empty or missing = everyone. */
   audience?: string[];
+  /** Featured projects (data/featured.ts) only. Stable across renames, so URLs and analytics keep working. */
+  id?: string;
+  /** Featured projects only: the project's page is /projects/<slug>. */
+  slug?: string;
+  /** Featured projects only: the stage Liam chooses to show publicly, not an internal status. */
+  stage?: string;
+  /** Featured projects only: 1 is shown first. */
+  featuredOrder?: number;
 }
 
 export interface ProjectsFile {

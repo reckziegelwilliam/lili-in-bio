@@ -12,6 +12,9 @@ import type { Project } from './projectTypes';
 import { buildGraph } from '@/lib/graph/buildGraph';
 import { canonicalStringify } from '@/lib/projects/canonicalJson';
 
+// data/featured.ts adds hand-written projects in front of the Pulse list; this test is about the Pulse list.
+const pulseOnly = (list: Project[]) => list.filter((p) => !p.id);
+
 const root = fileURLToPath(new URL('..', import.meta.url));
 
 const shown = (list: Project[]) =>
@@ -26,16 +29,17 @@ const groups = (list: { category: string; projects: Project[] }[]) =>
 
 describe('seeded data/projects.json', () => {
   it('renders the same project list as the hand-written list it replaced', () => {
-    expect(shown(projects)).toEqual(shown(legacyProjects));
+    expect(shown(pulseOnly(projects))).toEqual(shown(legacyProjects));
   });
 
   it('keeps the category order and the groups', () => {
-    expect(CATEGORY_ORDER).toEqual(LEGACY_ORDER);
-    expect(groups(projectsByCategory)).toEqual(groups(legacyByCategory));
+    expect(CATEGORY_ORDER.slice(0, LEGACY_ORDER.length)).toEqual(LEGACY_ORDER);
+    const pulseGroups = projectsByCategory.map((g) => ({ ...g, projects: pulseOnly(g.projects) }));
+    expect(groups(pulseGroups)).toEqual(groups(legacyByCategory));
   });
 
   it('gives the graph the same nodes, colours and edges', () => {
-    const now = buildGraph(projects);
+    const now = buildGraph(pulseOnly(projects));
     const before = buildGraph(legacyProjects);
     expect(now.nodes.map((n) => [n.id, n.color])).toEqual(before.nodes.map((n) => [n.id, n.color]));
     expect(now.edges).toEqual(before.edges);
