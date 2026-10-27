@@ -98,8 +98,9 @@ export default function RootLayout({
           <div className="noscript-content">
             <h1 className="noscript-title">liam rex</h1>
             <div className="noscript-links">
-              <a href="https://drip-e.com" className="noscript-link">drip-e</a>
-              <a href="https://comm-fridge.vercel.app/" className="noscript-link">wefrigerator</a>
+              <a href="/projects/longsignal" className="noscript-link">Longsignal</a>
+              <a href="/projects/terratrace" className="noscript-link">TerraTrace</a>
+              <a href="/projects/ashwake" className="noscript-link">Ashwake</a>
               <a href="https://github.com/reckziegelwilliam" className="noscript-link">GitHub</a>
             </div>
           </div>
