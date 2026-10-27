@@ -12,6 +12,8 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
+  // Page-level canonical URLs and share images resolve against this.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://liamrex.world"),
   title: "liam rex",
   description: "Software engineer in space. Building founder tools, climate maps, and a horror RPG.",
   keywords: ["portfolio", "developer", "context-aware", "product design", "link in bio"],

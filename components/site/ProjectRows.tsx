@@ -25,12 +25,14 @@ export function ProjectRows({ snapshot, highlightedName = null }: ProjectRowsPro
   );
 
   const row = (project: Project, isFeatured: boolean) => {
-    const external = /^https?:\/\//.test(project.href);
+    // Featured projects open their own page, which has the link out; the rest go straight to the project.
+    const href = isFeatured && project.slug ? `/projects/${project.slug}` : project.href;
+    const external = /^https?:\/\//.test(href);
     const emphasised = highlightedName === project.name || matchesAudience(project, snapshot?.source);
     return (
       <li key={project.name}>
         <a
-          href={project.href}
+          href={href}
           {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
           onClick={() => trackEvent('Link click', { props: projectClickProps(project.name, source, device) })}
           className="group grid grid-cols-[auto_1fr_auto] items-baseline gap-x-4 gap-y-1 border-t border-white/10 py-6 sm:grid-cols-[auto_minmax(0,1fr)_minmax(0,1.2fr)_auto] sm:gap-x-8 sm:py-8"

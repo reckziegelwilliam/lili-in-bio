@@ -11,6 +11,11 @@ export const featuredProjects: Project[] = [
     enabled: true,
     category: 'Tools',
     description: 'Indie business data for early-stage founders.',
+    about: [
+      'Longsignal helps independent software founders understand how their business is progressing, through private, evidenced history: readings, milestones and monthly reviews.',
+    ],
+    forWhom: 'Independent software founders.',
+    today: 'Live at longsignal.app and in active development.',
     stage: 'in progress',
     featuredOrder: 1,
     audience: [],

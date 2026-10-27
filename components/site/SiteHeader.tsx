@@ -10,7 +10,7 @@ export function SiteHeader() {
         <MiniConstellation className="h-6 w-9 text-white/80" />
       </Link>
       <nav aria-label="Main navigation" className="flex gap-6 text-sm text-white/70 sm:gap-8 sm:text-base">
-        <a href="#projects" className="transition-colors hover:text-white">projects</a>
+        <a href="/#projects" className="transition-colors hover:text-white">projects</a>
       </nav>
     </header>
   );

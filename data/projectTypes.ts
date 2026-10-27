@@ -42,6 +42,12 @@ export interface Project {
   stage?: string;
   /** Featured projects only: 1 is shown first. */
   featuredOrder?: number;
+  /** Featured projects only: what the project is, one paragraph each. The project page leaves out any section with no text. */
+  about?: string[];
+  /** Featured projects only: who it is for. */
+  forWhom?: string;
+  /** Featured projects only: what exists today (a product, a prototype, research). */
+  today?: string;
 }
 
 export interface ProjectsFile {

@@ -28,7 +28,7 @@ export function NodeDetailPanel({ project, snapshot, onClose }: NodeDetailPanelP
       role="dialog"
       aria-modal="true"
       aria-label={project.name}
-      className="fixed inset-x-4 bottom-4 z-40 mx-auto max-w-md rounded-2xl border border-white/15 bg-black/70 p-6 backdrop-blur-xl sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2"
+      className="fixed inset-x-4 bottom-4 z-40 mx-auto max-w-md rounded-2xl border border-white/10 bg-[#0a0b11]/90 p-6 backdrop-blur-xl sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2"
     >
       <button
         type="button"
@@ -39,7 +39,8 @@ export function NodeDetailPanel({ project, snapshot, onClose }: NodeDetailPanelP
         ✕
       </button>
 
-      <h2 className="pr-8 text-xl font-black tracking-tight text-white">{project.name}</h2>
+      <h2 className="pr-8 text-2xl font-medium tracking-tight text-white">{project.name}</h2>
+      {project.stage && <p className="mt-1 text-sm text-white/50">{project.stage}</p>}
 
       {project.description && <p className="mt-2 text-sm text-white/80">{project.description}</p>}
 
@@ -72,15 +73,38 @@ export function NodeDetailPanel({ project, snapshot, onClose }: NodeDetailPanelP
         </div>
       )}
 
-      <a
-        href={project.href}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={handleOpenClick}
-        className="mt-4 block w-full rounded-xl bg-white/10 py-3 text-center text-sm font-semibold text-white hover:bg-white/20"
-      >
-        Open {project.name} →
-      </a>
+      {project.slug ? (
+        <>
+          <a
+            href={`/projects/${project.slug}`}
+            onClick={handleOpenClick}
+            className="mt-4 block w-full rounded-xl bg-white py-3 text-center text-sm font-medium text-black hover:bg-white/90"
+          >
+            View {project.name} →
+          </a>
+          {/^https?:\/\//.test(project.href) && (
+            <a
+              href={project.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={handleOpenClick}
+              className="mt-2 block w-full rounded-xl border border-white/15 py-3 text-center text-sm text-white/80 hover:bg-white/10"
+            >
+              Open {project.name} ↗
+            </a>
+          )}
+        </>
+      ) : (
+        <a
+          href={project.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={handleOpenClick}
+          className="mt-4 block w-full rounded-xl bg-white/10 py-3 text-center text-sm font-semibold text-white hover:bg-white/20"
+        >
+          Open {project.name} →
+        </a>
+      )}
     </div>
   );
 }

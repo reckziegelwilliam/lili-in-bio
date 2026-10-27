@@ -36,7 +36,9 @@ export function GraphNodeMesh({
   const radius = node.baseRadius * scaleMultiplier;
   const hitRadius = radius * hitRadiusMultiplier;
   const label = node.project?.name ?? null;
-  const showLabel = label !== null && (alwaysShowLabel || hovered);
+  // Featured projects are always named, so a visitor can tell what the points are without hovering.
+  const isFeatured = node.project?.featuredOrder !== undefined;
+  const showLabel = label !== null && (alwaysShowLabel || hovered || isFeatured);
 
   return (
     <group position={[node.position.x, node.position.y, node.position.z]}>
@@ -75,8 +77,8 @@ export function GraphNodeMesh({
       </mesh>
 
       {showLabel && (
-        <Html distanceFactor={10} position={[0, radius + 0.4, 0]} center style={{ pointerEvents: 'none' }}>
-          <div className="whitespace-nowrap rounded-full border border-white/10 bg-black/70 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm">
+        <Html distanceFactor={80} position={[0, 0, 0]} style={{ pointerEvents: 'none' }}>
+          <div className={`-translate-y-1/2 translate-x-4 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium backdrop-blur-sm ${isFeatured ? 'bg-black/40 text-sm text-white' : 'border border-white/10 bg-black/70 text-white'}`}>
             {label}
           </div>
         </Html>
