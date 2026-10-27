@@ -2,6 +2,7 @@
 
 import type { Project } from '@/data/projects';
 import { CATEGORY_ORDER, projects } from '@/data/projects';
+import { getCategoryColor } from '@/lib/graph/categoryColors';
 import { matchesAudience, orderForVisitor } from '@/lib/projects/audience';
 import { projectClickProps, trackEvent } from '@/lib/utils/plausible';
 import type { VisitorSnapshot } from '@/types/visitor';
@@ -9,9 +10,11 @@ import type { VisitorSnapshot } from '@/types/visitor';
 interface ProjectRowsProps {
   snapshot?: VisitorSnapshot | null;
   highlightedName?: string | null;
+  /** A group highlighted in the graph; its rows read as lit and the others recede. */
+  highlightCategory?: string | null;
 }
 
-export function ProjectRows({ snapshot, highlightedName = null }: ProjectRowsProps) {
+export function ProjectRows({ snapshot, highlightedName = null, highlightCategory = null }: ProjectRowsProps) {
   const source = snapshot?.source ?? 'direct';
   const device = snapshot?.deviceType ?? 'desktop';
   const enabled = projects.filter((p) => p.enabled);
@@ -28,18 +31,21 @@ export function ProjectRows({ snapshot, highlightedName = null }: ProjectRowsPro
     // Featured projects open their own page, which has the link out; the rest go straight to the project.
     const href = isFeatured && project.slug ? `/projects/${project.slug}` : project.href;
     const external = /^https?:\/\//.test(href);
-    const emphasised = highlightedName === project.name || matchesAudience(project, snapshot?.source);
+    const inGroup = highlightCategory !== null && project.category === highlightCategory;
+    const emphasised = highlightedName === project.name || matchesAudience(project, snapshot?.source) || inGroup;
     return (
       <li key={project.name}>
         <a
+          style={{ opacity: highlightCategory !== null && !inGroup ? 0.35 : 1 }}
           href={href}
           {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
           onClick={() => trackEvent('Link click', { props: projectClickProps(project.name, source, device) })}
-          className="group grid grid-cols-[auto_1fr_auto] items-baseline gap-x-4 gap-y-1 border-t border-white/10 py-6 sm:grid-cols-[auto_minmax(0,1fr)_minmax(0,1.2fr)_auto] sm:gap-x-8 sm:py-8"
+          className="group transition-opacity grid grid-cols-[auto_1fr_auto] items-baseline gap-x-4 gap-y-1 border-t border-white/10 py-6 sm:grid-cols-[auto_minmax(0,1fr)_minmax(0,1.2fr)_auto] sm:gap-x-8 sm:py-8"
         >
           <span
             aria-hidden="true"
             className={`h-1.5 w-1.5 self-center rounded-full ${emphasised ? 'bg-white' : 'bg-white/40'}`}
+            style={{ background: getCategoryColor(project.category), opacity: emphasised ? 1 : 0.6 }}
           />
           <span className={`${isFeatured ? 'text-2xl sm:text-3xl' : 'text-lg sm:text-xl'} font-normal tracking-tight text-white`}>
             {project.name}
@@ -64,7 +70,19 @@ export function ProjectRows({ snapshot, highlightedName = null }: ProjectRowsPro
       {more.length > 0 && (
         <>
           <h3 className="mb-2 mt-14 text-base text-white/80">more work</h3>
-          <ul>{more.map((p) => row(p, false))}</ul>
+          {CATEGORY_ORDER.map((category) => {
+            const inCategory = more.filter((p) => p.category === category);
+            if (inCategory.length === 0) return null;
+            return (
+              <div key={category} className="mt-8">
+                <h4 className="mb-1 flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-white/50">
+                  <span aria-hidden="true" className="h-2 w-2 rounded-full" style={{ background: getCategoryColor(category) }} />
+                  {category}
+                </h4>
+                <ul>{inCategory.map((p) => row(p, false))}</ul>
+              </div>
+            );
+          })}
         </>
       )}
     </section>

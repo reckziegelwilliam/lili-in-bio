@@ -4,8 +4,10 @@ import { useEffect, useRef, useState } from 'react';
 import { SkipToContent } from '@/components/AccessibilityUtils';
 import { GraphCanvasLoader } from '@/components/graph/GraphCanvasLoader';
 import { NodeDetailPanel } from '@/components/graph/NodeDetailPanel';
+import { GraphLegend } from '@/components/site/GraphLegend';
 import { ProjectRows } from '@/components/site/ProjectRows';
 import { SiteHeader } from '@/components/site/SiteHeader';
+import { projectsByCategory } from '@/data/projects';
 import { useVisitorSnapshot } from '@/lib/hooks/useVisitorSnapshot';
 import { trackEvent } from '@/lib/utils/plausible';
 import type { GraphNode } from '@/lib/graph/types';
@@ -15,6 +17,11 @@ export default function Home() {
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
   // null until the loader has checked reduced motion; false means the page runs on the project list alone.
   const [canvasActive, setCanvasActive] = useState<boolean | null>(null);
+  // The group highlighted from the legend: what the pointer is over, else the one clicked.
+  const [hoverCategory, setHoverCategory] = useState<string | null>(null);
+  const [pinnedCategory, setPinnedCategory] = useState<string | null>(null);
+  const highlightCategory = hoverCategory ?? pinnedCategory;
+  const legend = projectsByCategory.map((g) => ({ category: g.category, count: g.projects.length }));
   const visitTracked = useRef(false);
 
   useEffect(() => {
@@ -55,20 +62,26 @@ export default function Home() {
         </section>
 
         {canvasActive !== false && (
-          <div className="relative h-[420px] w-full sm:h-[520px] lg:h-[640px]">
+          <div>
+          <div className="relative h-[420px] w-full sm:h-[520px] lg:h-[600px]">
             <GraphCanvasLoader
               visitorSource={snapshot?.source ?? null}
               focusedNodeId={selectedNode?.id ?? null}
+              highlightCategory={highlightCategory}
               // Clicking the hub (no project) clears the selection the same way closing the detail panel does.
               onNodeSelect={(node) => setSelectedNode(node.kind === 'hub' ? null : node)}
               onActiveChange={setCanvasActive}
             />
-            <p className="pointer-events-none absolute bottom-0 right-0 text-sm text-white/50">a few connected interests</p>
+          </div>
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <GraphLegend categories={legend} pinned={pinnedCategory} onHover={setHoverCategory} onPin={setPinnedCategory} />
+            <p className="text-sm text-white/50">a few connected interests</p>
+          </div>
           </div>
         )}
       </div>
 
-      <ProjectRows snapshot={snapshot} highlightedName={selectedNode?.project?.name ?? null} />
+      <ProjectRows snapshot={snapshot} highlightedName={selectedNode?.project?.name ?? null} highlightCategory={highlightCategory} />
 
       {selectedNode?.project && (
         <NodeDetailPanel

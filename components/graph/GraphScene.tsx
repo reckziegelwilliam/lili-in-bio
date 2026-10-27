@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState, type ElementRef } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import { Html, OrbitControls } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { Vector3 } from 'three';
 import { buildGraph } from '@/lib/graph/buildGraph';
+import { getCategoryColor } from '@/lib/graph/categoryColors';
 import { runForceSimulation } from '@/lib/graph/forceSimulation';
 import { computeNodeEmphasis } from '@/lib/graph/nodeEmphasis';
 import { GraphNodeMesh } from './GraphNode';
@@ -20,6 +21,8 @@ interface GraphSceneProps {
   /** The currently-selected project node's id (NodeDetailPanel is open for it),
    *  or null when nothing is selected. Drives the camera focus animation. */
   focusedNodeId: string | null;
+  /** A category chosen outside the scene (the legend); highlights that group the way hovering one of its nodes does. */
+  highlightCategory?: string | null;
   onNodeSelect: (node: GraphNode) => void;
 }
 
@@ -37,7 +40,7 @@ const NEUTRAL_EMPHASIS = { scaleMultiplier: 1, emissiveMultiplier: 1 };
 // the closest-together nodes' hit zones start overlapping each other.
 const HIT_RADIUS_MULTIPLIER = { mouse: 3, touch: 4.5 } as const;
 
-export function GraphScene({ visitorSource, isCoarsePointer, prefersReducedMotion, focusedNodeId, onNodeSelect }: GraphSceneProps) {
+export function GraphScene({ visitorSource, isCoarsePointer, prefersReducedMotion, focusedNodeId, highlightCategory = null, onNodeSelect }: GraphSceneProps) {
   const graph = useMemo(() => buildGraph(), []);
   const positions = useMemo(() => runForceSimulation(graph), [graph]);
 
@@ -76,6 +79,7 @@ export function GraphScene({ visitorSource, isCoarsePointer, prefersReducedMotio
         isCoarsePointer={isCoarsePointer}
         prefersReducedMotion={prefersReducedMotion}
         focusedNodeId={focusedNodeId}
+        highlightCategory={highlightCategory}
         cameraDistance={cameraDistance}
         onNodeSelect={onNodeSelect}
       />
@@ -90,6 +94,7 @@ interface SceneContentProps {
   isCoarsePointer: boolean;
   prefersReducedMotion: boolean;
   focusedNodeId: string | null;
+  highlightCategory: string | null;
   cameraDistance: number;
   onNodeSelect: (node: GraphNode) => void;
 }
@@ -109,6 +114,7 @@ function SceneContent({
   isCoarsePointer,
   prefersReducedMotion,
   focusedNodeId,
+  highlightCategory,
   cameraDistance,
   onNodeSelect,
 }: SceneContentProps) {
@@ -118,6 +124,27 @@ function SceneContent({
   const { camera, gl } = useThree();
   const flyTarget = useRef<{ position: Vector3; lookAt: Vector3; ease: number } | null>(null);
   const [isFlying, setIsFlying] = useState(false);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+
+  // The highlighted group: the legend's choice, else the group of the node under the pointer.
+  const categoryOf = useMemo(() => new Map(graph.nodes.map((n) => [n.id, n.project?.category ?? null])), [graph]);
+  const activeCategory = highlightCategory ?? (hoveredId ? categoryOf.get(hoveredId) ?? null : null);
+
+  // One caption per group of two or more, at the middle of its points. It shows only while its group is highlighted: always on,
+  // the captions collide with the node labels.
+  const groupCaptions = useMemo(() => {
+    const byCategory = new Map<string, { x: number; y: number; z: number; n: number }>();
+    for (const node of graph.nodes) {
+      const category = node.project?.category;
+      const pos = positions[node.id];
+      if (!category || !pos) continue;
+      const sum = byCategory.get(category) ?? { x: 0, y: 0, z: 0, n: 0 };
+      byCategory.set(category, { x: sum.x + pos.x, y: sum.y + pos.y, z: sum.z + pos.z, n: sum.n + 1 });
+    }
+    return Array.from(byCategory.entries())
+      .filter(([, sum]) => sum.n >= 2)
+      .map(([category, sum]) => ({ category, position: [sum.x / sum.n, sum.y / sum.n, sum.z / sum.n] as [number, number, number] }));
+  }, [graph, positions]);
 
   // Comfortably inside [minDistance, maxDistance] below (0.4x–2x) so OrbitControls
   // never yanks the camera back out right after a focus transition completes.
@@ -180,13 +207,33 @@ function SceneContent({
       <directionalLight position={[6, 8, 10]} intensity={1.4} />
       <pointLight position={[-10, -5, 6]} intensity={0.8} color="#8fe3ff" distance={60} />
 
-      {graph.edges.map((edge) => (
-        <GraphEdgeMesh
-          key={`${edge.sourceId}-${edge.targetId}`}
-          from={positions[edge.sourceId]}
-          to={positions[edge.targetId]}
-          kind={edge.kind}
-        />
+      {graph.edges.map((edge) => {
+        const inGroup =
+          activeCategory !== null &&
+          edge.kind === 'relationship' &&
+          categoryOf.get(edge.sourceId) === activeCategory &&
+          categoryOf.get(edge.targetId) === activeCategory;
+        return (
+          <GraphEdgeMesh
+            key={`${edge.sourceId}-${edge.targetId}`}
+            from={positions[edge.sourceId]}
+            to={positions[edge.targetId]}
+            kind={edge.kind}
+            dimmed={activeCategory !== null && !inGroup}
+            highlightColor={inGroup ? getCategoryColor(activeCategory) : undefined}
+          />
+        );
+      })}
+
+      {groupCaptions.map(({ category, position }) => (
+        <Html key={category} distanceFactor={80} position={position} center style={{ pointerEvents: 'none' }}>
+          <div
+            style={{ color: getCategoryColor(category), opacity: activeCategory === category ? 1 : 0 }}
+            className="mt-10 whitespace-nowrap text-[10px] font-medium uppercase tracking-[0.18em] transition-opacity duration-200"
+          >
+            {category}
+          </div>
+        </Html>
       ))}
 
       {graph.nodes.map((node) => {
@@ -201,6 +248,9 @@ function SceneContent({
             segments={segments}
             hitRadiusMultiplier={hitRadiusMultiplier}
             alwaysShowLabel={isCoarsePointer}
+            dimmed={activeCategory !== null && node.kind === 'project' && node.project?.category !== activeCategory}
+            inGroup={activeCategory !== null && node.project?.category === activeCategory}
+            onHover={setHoveredId}
             onSelect={onNodeSelect}
           />
         );
