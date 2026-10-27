@@ -66,7 +66,8 @@ export function GraphScene({ visitorSource, isCoarsePointer, prefersReducedMotio
     <Canvas
       dpr={[1, isCoarsePointer ? 1.5 : 2]}
       gl={{ antialias: !isCoarsePointer }}
-      camera={{ position: defaultCameraPosition, fov: 45 }}
+      // 32 rather than 45: the graph now sits in a hero panel instead of filling the screen, so it needs to fill more of its frame.
+      camera={{ position: defaultCameraPosition, fov: 32 }}
     >
       <SceneContent
         visitorSource={visitorSource}
@@ -114,7 +115,7 @@ function SceneContent({
   const segments = isCoarsePointer ? 20 : 32;
   const hitRadiusMultiplier = isCoarsePointer ? HIT_RADIUS_MULTIPLIER.touch : HIT_RADIUS_MULTIPLIER.mouse;
   const controlsRef = useRef<ElementRef<typeof OrbitControls>>(null);
-  const { camera } = useThree();
+  const { camera, gl } = useThree();
   const flyTarget = useRef<{ position: Vector3; lookAt: Vector3; ease: number } | null>(null);
   const [isFlying, setIsFlying] = useState(false);
 
@@ -145,6 +146,13 @@ function SceneContent({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focusedNodeId]);
+
+  // The graph sits inside the page now, so it must not swallow the wheel or a vertical swipe: OrbitControls sets
+  // touch-action: none on the canvas, which would stop a touch user scrolling past it. Runs after OrbitControls' own
+  // effect (children first), so this value wins.
+  useEffect(() => {
+    if (isCoarsePointer) gl.domElement.style.touchAction = 'pan-y';
+  }, [gl, isCoarsePointer]);
 
   useFrame(() => {
     const target = flyTarget.current;
@@ -202,6 +210,8 @@ function SceneContent({
         ref={controlsRef}
         enabled={!isFlying}
         enablePan={false}
+        enableZoom={false}
+        enableRotate={!isCoarsePointer}
         autoRotate={!prefersReducedMotion && !isFlying}
         autoRotateSpeed={0.6}
         minDistance={cameraDistance * 0.4}

@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { SkipToContent } from '@/components/AccessibilityUtils';
-import { AccessibleProjectList } from '@/components/graph/AccessibleProjectList';
 import { GraphCanvasLoader } from '@/components/graph/GraphCanvasLoader';
 import { NodeDetailPanel } from '@/components/graph/NodeDetailPanel';
+import { ProjectRows } from '@/components/site/ProjectRows';
+import { SiteHeader } from '@/components/site/SiteHeader';
 import { useVisitorSnapshot } from '@/lib/hooks/useVisitorSnapshot';
 import { trackEvent } from '@/lib/utils/plausible';
 import type { GraphNode } from '@/lib/graph/types';
@@ -12,11 +13,9 @@ import type { GraphNode } from '@/lib/graph/types';
 export default function Home() {
   const snapshot = useVisitorSnapshot();
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
-  const [canvasActive, setCanvasActive] = useState(false);
-  const [listVisible, setListVisible] = useState(false);
+  // null until the loader has checked reduced motion; false means the page runs on the project list alone.
+  const [canvasActive, setCanvasActive] = useState<boolean | null>(null);
   const visitTracked = useRef(false);
-  const listWrapperRef = useRef<HTMLDivElement>(null);
-  const listInert = canvasActive && !listVisible;
 
   useEffect(() => {
     if (!snapshot || visitTracked.current) return;
@@ -32,41 +31,44 @@ export default function Home() {
     });
   }, [snapshot]);
 
-  useEffect(() => {
-    const el = listWrapperRef.current;
-    if (!el) return;
-    // react-dom 18 doesn't support `inert` as a JSX prop (it strips it) — set
-    // the real DOM attribute directly so it actually works in this React version.
-    el.toggleAttribute('inert', listInert);
-  }, [listInert]);
-
   return (
-    <main className="relative min-h-screen bg-[#05060a]">
-      <SkipToContent onFocus={() => setListVisible(true)} />
+    <main className="relative min-h-screen bg-[#05060a] text-white">
+      <SkipToContent />
+      <SiteHeader />
 
-      {/* Always-rendered semantic content: SEO, screen readers, no-JS, reduced-motion. */}
-      <div ref={listWrapperRef}>
-        <AccessibleProjectList snapshot={snapshot} />
+      <div id="main-content" className="mx-auto grid w-full max-w-6xl gap-8 px-6 pb-8 pt-6 sm:px-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:items-center lg:gap-4 lg:pt-12">
+        <section aria-labelledby="intro-title" className="relative z-10">
+          <h1 id="intro-title" className="text-5xl font-medium leading-[1.05] tracking-tight sm:text-6xl">
+            curious everywhere.
+          </h1>
+          <p className="mt-8 max-w-sm text-lg leading-relaxed text-white/70">
+            i&apos;m liam, a software engineer in space.
+            <br />
+            building founder tools, climate maps, and a horror RPG.
+          </p>
+          <a
+            href="#projects"
+            className="mt-10 inline-flex items-center gap-3 border-b border-white/30 pb-3 text-lg text-white transition-colors hover:border-white"
+          >
+            explore the projects <span aria-hidden="true">↗</span>
+          </a>
+        </section>
+
+        {canvasActive !== false && (
+          <div className="relative h-[420px] w-full sm:h-[520px] lg:h-[640px]">
+            <GraphCanvasLoader
+              visitorSource={snapshot?.source ?? null}
+              focusedNodeId={selectedNode?.id ?? null}
+              // Clicking the hub (no project) clears the selection the same way closing the detail panel does.
+              onNodeSelect={(node) => setSelectedNode(node.kind === 'hub' ? null : node)}
+              onActiveChange={setCanvasActive}
+            />
+            <p className="pointer-events-none absolute bottom-0 right-0 text-sm text-white/50">a few connected interests</p>
+          </div>
+        )}
       </div>
 
-      {/* Progressive enhancement: covers the list above once it mounts. Pointer events
-          are only enabled while the canvas is actually active, so it never blocks clicks
-          on the list underneath (reduced motion, no-JS, or the pre-activation window). */}
-      <div
-        className={`fixed inset-0 z-30 ${
-          listVisible ? 'hidden' : canvasActive ? 'pointer-events-auto' : 'pointer-events-none'
-        }`}
-      >
-        <GraphCanvasLoader
-          visitorSource={snapshot?.source ?? null}
-          focusedNodeId={selectedNode?.id ?? null}
-          // Clicking the hub (no project) clears the selection the same way
-          // closing the detail panel does — both flow through `focusedNodeId`
-          // becoming null, which is what drives the camera back to the overview.
-          onNodeSelect={(node) => setSelectedNode(node.kind === 'hub' ? null : node)}
-          onActiveChange={setCanvasActive}
-        />
-      </div>
+      <ProjectRows snapshot={snapshot} highlightedName={selectedNode?.project?.name ?? null} />
 
       {selectedNode?.project && (
         <NodeDetailPanel
@@ -76,43 +78,14 @@ export default function Home() {
         />
       )}
 
-      <button
-        type="button"
-        onClick={() => setListVisible((v) => !v)}
-        className="fixed bottom-4 left-4 z-40 rounded-full bg-white/10 px-4 py-2 text-xs font-medium text-white/70 transition-colors hover:bg-white/20 hover:text-white"
-      >
-        {listVisible ? 'View 3D graph' : 'View as list'}
-      </button>
-
-      <div className="fixed bottom-4 right-4 z-40 flex items-center gap-2">
-        <a
-          href="https://x.com/liamreckziegel"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="X"
-          className="rounded-full bg-white/10 p-3 text-white/70 transition-colors hover:bg-white/20 hover:text-white"
-        >
-          <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
-          </svg>
-        </a>
-
-        <a
-          href="https://github.com/reckziegelwilliam"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="GitHub"
-          className="rounded-full bg-white/10 p-3 text-white/70 transition-colors hover:bg-white/20 hover:text-white"
-        >
-          <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-            <path
-              fillRule="evenodd"
-              clipRule="evenodd"
-              d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
-            />
-          </svg>
-        </a>
-      </div>
+      <footer className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 pb-10 pt-6 text-sm text-white/60 sm:px-10">
+        <span>Los Angeles</span>
+        <span className="flex items-center gap-5">
+          <a href="https://x.com/liamreckziegel" target="_blank" rel="noopener noreferrer" className="hover:text-white">x</a>
+          <a href="https://github.com/reckziegelwilliam" target="_blank" rel="noopener noreferrer" className="hover:text-white">github</a>
+          <span>sharing the work as i go.</span>
+        </span>
+      </footer>
     </main>
   );
 }

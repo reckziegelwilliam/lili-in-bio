@@ -1,32 +1,32 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
-import { Inter } from "next/font/google";
+import { DM_Sans } from "next/font/google";
 import "./globals.css";
 
 const plausibleDomain = process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN || "lili-in.bio";
 
-const inter = Inter({ 
+const dmSans = DM_Sans({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-inter",
+  variable: "--font-dm-sans",
 });
 
 export const metadata: Metadata = {
-  title: "lili.in.bio",
-  description: "A context-aware link-in-bio that adapts to you. Built to demonstrate visitor-first product thinking.",
+  title: "liam rex",
+  description: "Software engineer in space. Building founder tools, climate maps, and a horror RPG.",
   keywords: ["portfolio", "developer", "context-aware", "product design", "link in bio"],
-  authors: [{ name: "Lili" }],
+  authors: [{ name: "Liam Rex" }],
   // Essential for Instagram link previews
   openGraph: {
-    title: "lili.in.bio",
-    description: "A context-aware link-in-bio that adapts to you",
+    title: "liam rex",
+    description: "Software engineer in space. Building founder tools, climate maps, and a horror RPG.",
     type: "website",
-    siteName: "lili.in.bio",
+    siteName: "liam rex",
   },
   twitter: {
     card: "summary_large_image",
-    title: "lili.in.bio",
-    description: "A context-aware link-in-bio that adapts to you",
+    title: "liam rex",
+    description: "Software engineer in space. Building founder tools, climate maps, and a horror RPG.",
   },
   // Ensures proper behavior in in-app browsers
   other: {
@@ -57,8 +57,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={inter.variable}>
-      <body className={`${inter.className} antialiased`}>
+    <html lang="en" className={dmSans.variable}>
+      <body className={`${dmSans.className} antialiased`}>
         <Script
           defer
           data-domain={plausibleDomain}
@@ -94,7 +94,7 @@ export default function RootLayout({
             .noscript-link:hover { background: rgba(255,255,255,0.2); }
           `}</style>
           <div className="noscript-content">
-            <h1 className="noscript-title">lili.in.bio</h1>
+            <h1 className="noscript-title">liam rex</h1>
             <div className="noscript-links">
               <a href="https://drip-e.com" className="noscript-link">drip-e</a>
               <a href="https://comm-fridge.vercel.app/" className="noscript-link">wefrigerator</a>

@@ -7,7 +7,7 @@ import type { GraphNode } from '@/lib/graph/types';
 const GraphScene = dynamic(() => import('./GraphScene').then((mod) => mod.GraphScene), {
   ssr: false,
   loading: () => (
-    <div className="flex min-h-screen items-center justify-center bg-[#05060a]">
+    <div className="flex h-full min-h-[320px] items-center justify-center">
       <div className="h-10 w-10 animate-spin rounded-full border-2 border-white/20 border-t-white/80" />
     </div>
   ),
