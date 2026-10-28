@@ -5,6 +5,7 @@ import { SiteHeader } from '@/components/site/SiteHeader';
 import { getCategoryColor } from '@/lib/graph/categoryColors';
 import { featuredProjects } from '@/data/projects';
 import { outsideLink } from '@/lib/projects/links';
+import { FEATURED_EXPERIENCE } from '@/data/experience';
 
 interface PageProps {
   params: { slug: string };
@@ -43,16 +44,30 @@ export default function ProjectPage({ params }: PageProps) {
   if (!project) notFound();
   const site = outsideLink(project);
   const latest = project.recentImprovements ?? [];
+  // Real project media, when chosen (data/experience.ts): the page leads with it.
+  const media = project.slug ? FEATURED_EXPERIENCE[project.slug] : undefined;
+  const hasMedia = !!(media?.poster && media.mediaAlt);
   const links = project.subLinks ?? [];
 
   return (
-    <main className="min-h-screen bg-[#05060a] text-white">
+    <main className="min-h-screen bg-[#060914] text-[#ECE8DF]">
       <SiteHeader />
       <article className="mx-auto w-full max-w-4xl px-6 pb-20 pt-8 sm:px-10 sm:pt-14">
-        <Link href="/#projects" className="text-sm text-white/60 transition-colors hover:text-white">
-          ← all projects
+        <Link href="/" className="text-sm text-white/60 transition-colors hover:text-white">
+          ← back to the sky
         </Link>
-        <h1 className="mt-8 text-5xl font-medium tracking-tight sm:text-6xl">{project.name}</h1>
+        {hasMedia && media && (
+          <figure className="mt-8 overflow-hidden rounded-2xl border border-white/10">
+            {media.previewVideo ? (
+              <video className="block h-auto w-full" src={media.previewVideo} poster={media.poster} muted loop playsInline controls preload="none" aria-label={media.mediaAlt} />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img className="block h-auto w-full" src={media.poster} alt={media.mediaAlt} />
+            )}
+            {media.mediaCaption && <figcaption className="px-4 py-3 text-sm text-[#ECE8DF]/60">{media.mediaCaption}</figcaption>}
+          </figure>
+        )}
+        <h1 className="mt-8 font-display text-6xl tracking-tight sm:text-7xl">{project.name}</h1>
         <p className="mt-4 text-xl text-white/70">{project.description}</p>
         <p className="mt-3 flex items-center gap-2 text-sm text-white/50">
           <span aria-hidden="true" className="h-2 w-2 rounded-full" style={{ background: getCategoryColor(project.category) }} />
