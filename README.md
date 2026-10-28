@@ -6,6 +6,7 @@ Liam Rex's portfolio page: a short introduction beside an interactive **3D force
 
 - **The project list** (`data/projects.json`) is written by Project Pulse when Liam presses Publish. Edit it in Pulse (`public.md` in `_portfolio`), not here; the file is rewritten on every Publish. It may be version 1 or 2 (version 2 adds Now, Updates, Outreach and About, which this site doesn't show yet).
 - **Featured projects** are named in `data/featured.ts`. They get a page at `/projects/<slug>`, a place at the top of the list and labels in the graph. Their words still come from Pulse. `data/featured.ts` also holds a stopgap copy of their rows, used only until a Publish includes them.
+- **How the sky looks** (groups, star positions, each featured star's motif, media slots) lives in `data/experience.ts`. Presentation only: no project facts or public sentences there. Plan and notes: `docs/experience/`.
 - **Project pages** show only what Pulse publishes for a project: its blurb, category, link, dated `#public` updates and sub-links.
 
 ## 🌟 Features
