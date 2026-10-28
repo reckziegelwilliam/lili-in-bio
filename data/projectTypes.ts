@@ -51,9 +51,34 @@ export interface ProjectUpdate {
   text: string;
 }
 
+/** A current project with its one-line Now text (Pulse: in a focus slot, or building/launched on Liam's move). */
+export interface NowItem {
+  name: string;
+  href: string;
+  text: string;
+  audience: string[];
+}
+
+/** An invitation Liam publishes (collaborate · hire · feedback · other). Link: https, or mailto his own address. */
+export interface OutreachItem {
+  title: string;
+  description: string;
+  href: string;
+  kind: string;
+}
+
+export interface About {
+  bio: string;
+  links: { name: string; href: string }[];
+  contact: string;
+}
+
 export interface ProjectsFile {
   categories: string[];
   projects: Project[];
-  /** Version 2 only; empty for version 1. */
+  /** The rest are version 2 only; empty (or undefined, for about) in version 1. */
   updates?: ProjectUpdate[];
+  now?: NowItem[];
+  outreach?: OutreachItem[];
+  about?: About;
 }

@@ -1,4 +1,7 @@
 import {
+  type About,
+  type NowItem,
+  type OutreachItem,
   type ProjectUpdate,
   type Project,
   type ProjectImprovement,
@@ -47,6 +50,20 @@ function httpsUrl(o: Obj, key: string, where: string): string {
   const url = parseUrl(value);
   if (!url) fail(`${where}.${key} is not a valid URL`);
   if (url.protocol !== 'https:') fail(`${where}.${key} must start with https://`);
+  return value;
+}
+
+/** https, or a mailto: link (Pulse only lets Liam's own address through). */
+function linkUrl(o: Obj, key: string, where: string): string {
+  const value = text(o, key, where);
+  if (/^mailto:[^@\s]+@[^@\s]+$/i.test(value)) return value;
+  return httpsUrl(o, key, where);
+}
+
+function list(raw: Obj, key: string): unknown[] {
+  const value = raw[key];
+  if (value === undefined) return [];
+  if (!Array.isArray(value)) fail(`${key} must be an array`);
   return value;
 }
 
@@ -127,20 +144,46 @@ export function parseProjectsFile(raw: unknown): ProjectsFile {
     return project;
   });
 
-  // Version 2's site-wide updates (Pulse's #public log lines). Now, Outreach and About aren't read yet.
-  const updates: ProjectUpdate[] = [];
-  if (raw.version === 2 && raw.updates !== undefined) {
-    if (!Array.isArray(raw.updates)) fail('updates must be an array');
-    raw.updates.forEach((u: unknown, i: number) => {
-      const where = `updates[${i}]`;
-      if (!isObj(u)) fail(`${where} must be an object`);
-      const date = text(u, 'date', where);
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) fail(`${where}.date must be YYYY-MM-DD`);
-      updates.push({ project: text(u, 'project', where), href: httpsUrl(u, 'href', where), date, text: text(u, 'text', where) });
-    });
+  // Version 2's sections: site-wide updates (Pulse's #public log lines), Now, Outreach and About.
+  const v2 = raw.version === 2;
+  const updates: ProjectUpdate[] = (v2 ? list(raw, 'updates') : []).map((u: unknown, i: number) => {
+    const where = `updates[${i}]`;
+    if (!isObj(u)) fail(`${where} must be an object`);
+    const date = text(u, 'date', where);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) fail(`${where}.date must be YYYY-MM-DD`);
+    return { project: text(u, 'project', where), href: httpsUrl(u, 'href', where), date, text: text(u, 'text', where) };
+  });
+  const now: NowItem[] = (v2 ? list(raw, 'now') : []).map((n: unknown, i: number) => {
+    const where = `now[${i}]`;
+    if (!isObj(n)) fail(`${where} must be an object`);
+    return {
+      name: text(n, 'name', where),
+      href: httpsUrl(n, 'href', where),
+      text: text(n, 'text', where),
+      audience: n.audience === undefined ? [] : strings(n.audience, `${where}.audience`),
+    };
+  });
+  const outreach: OutreachItem[] = (v2 ? list(raw, 'outreach') : []).map((o: unknown, i: number) => {
+    const where = `outreach[${i}]`;
+    if (!isObj(o)) fail(`${where} must be an object`);
+    return { title: text(o, 'title', where), description: text(o, 'description', where), href: linkUrl(o, 'href', where), kind: text(o, 'kind', where) };
+  });
+  let about: About | undefined;
+  if (v2 && raw.about !== undefined) {
+    const a = raw.about;
+    if (!isObj(a)) fail('about must be an object');
+    about = {
+      bio: text(a, 'bio', 'about'),
+      contact: typeof a.contact === 'string' ? a.contact : '',
+      links: list(a, 'links').map((l: unknown, i: number) => {
+        const where = `about.links[${i}]`;
+        if (!isObj(l)) fail(`${where} must be an object`);
+        return { name: text(l, 'name', where), href: linkUrl(l, 'href', where) };
+      }),
+    };
   }
 
-  return { categories, projects, updates };
+  return { categories, projects, updates, now, outreach, about };
 }
 
 /** Projects grouped in category order; categories with no projects are left out. */

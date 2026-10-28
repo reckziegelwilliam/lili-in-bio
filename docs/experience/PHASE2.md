@@ -42,4 +42,7 @@ Waiting on media for both: a recording of longsignal.app for Longsignal; for Ash
 
 Checked with a simulated version 2 file and a temporary poster setting (both restored): updates list newest first; the project page shows the poster.
 
-Not done: Now, Outreach and About from the version 2 export; one small surprise (EGG-01); retiring the parity test and the old graph code (after the first Publish).
+- **Now, About, Outreach.** The loader reads Pulse's version 2 `now`, `outreach` and `about` (links must be https or mailto). Home shows a "now" list above "lately"; `/about` shows the bio, links, "open to" (outreach) and contact, and the header's `about` link appears only when About exists. All hidden (and `/about` 404s) until Pulse publishes them. Checked with a simulated file (restored).
+- **The one surprise (EGG-01).** About 25 s after arrival, then once a minute, a lone star in an empty part of the sky grows into a small tree of light, holds, and folds back. Not while a star is selected, not on struggling devices, not in the static sky.
+
+Not done: retiring the parity test and the old graph code (after the first Publish).

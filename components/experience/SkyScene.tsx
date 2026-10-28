@@ -100,6 +100,7 @@ function SkyContent({
       <pointLight position={[-8, 6, 14]} intensity={1.2} color={SKY_COLORS.starlight} distance={80} />
 
       <CameraRig focus={focus} rest={rest} wide={wideness(aspect)} />
+      {!lowPower && <Anomaly position={placeForAspect([-9.5, -1.2, -4], aspect)} quiet={selectedId !== null} />}
       <Starfield count={lowPower ? 350 : isCoarsePointer ? 500 : 1100} dimmed={eclipse || selectedId !== null} />
 
       {layout.links.map((link) => {
@@ -790,5 +791,57 @@ function EmberVortex({ open, coarse }: { open: boolean; coarse: boolean }) {
         <pointsMaterial ref={mat} map={dot} size={0.085} sizeAttenuation color="#E09A6E" transparent opacity={0} depthWrite={false} blending={THREE.AdditiveBlending} />
       </points>
     </Billboard>
+  );
+}
+
+/**
+ * The one surprise: now and then a lone star in an empty part of the sky grows into a small tree of light, holds a
+ * moment, and folds back into a star. Purely decorative; nothing links to it and nothing depends on seeing it.
+ */
+function Anomaly({ position, quiet }: { position: Vec3Tuple; quiet: boolean }) {
+  const { shape, n } = useMemo(() => {
+    // Branches: a trunk, then three levels of forks, sampled into points.
+    const pts: number[] = [];
+    const rand = seeded(5);
+    const branch = (x: number, y: number, angle: number, len: number, depth: number) => {
+      const x2 = x + Math.sin(angle) * len;
+      const y2 = y + Math.cos(angle) * len;
+      const steps = Math.max(3, Math.round(len * 14));
+      for (let k = 0; k <= steps; k++) pts.push(x + ((x2 - x) * k) / steps, y + ((y2 - y) * k) / steps, (rand() - 0.5) * 0.05);
+      if (depth > 0) {
+        branch(x2, y2, angle - 0.45 - rand() * 0.2, len * 0.68, depth - 1);
+        branch(x2, y2, angle + 0.4 + rand() * 0.2, len * 0.68, depth - 1);
+      }
+    };
+    branch(0, -0.45, 0, 0.45, 3);
+    return { shape: new Float32Array(pts), n: pts.length / 3 };
+  }, []);
+  const geometry = useMemo(() => {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 3), 3));
+    return g;
+  }, [n]);
+  const mat = useRef<THREE.PointsMaterial>(null);
+  const clock = useRef(-25); // first appearance about 25 s after arrival, then roughly once a minute
+  const dot = useDotTexture();
+
+  useFrame((_, dt) => {
+    clock.current += dt;
+    // A 9 s cycle inside every 60 s: grow (2.5 s), hold (3 s), fold (2.5 s). Never while a star is selected.
+    const t = clock.current % 60;
+    const grow = quiet || clock.current < 0 ? 0 : t < 2.5 ? t / 2.5 : t < 5.5 ? 1 : t < 8 ? 1 - (t - 5.5) / 2.5 : 0;
+    const e = grow * grow * (3 - 2 * grow);
+    const arr = geometry.attributes.position.array as Float32Array;
+    for (let i = 0; i < n * 3; i++) arr[i] = shape[i] * e;
+    geometry.attributes.position.needsUpdate = true;
+    if (mat.current) mat.current.opacity = 0.35 + 0.5 * e;
+  });
+
+  return (
+    <group position={position} scale={1.6}>
+      <points geometry={geometry} raycast={() => null}>
+        <pointsMaterial ref={mat} map={dot} size={0.07} sizeAttenuation color="#ECE8DF" transparent opacity={0.35} depthWrite={false} />
+      </points>
+    </group>
   );
 }

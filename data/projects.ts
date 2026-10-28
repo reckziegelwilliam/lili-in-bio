@@ -6,7 +6,7 @@ import { groupByCategory, parseProjectsFile } from '@/lib/projects/loadProjects'
 import { featuredNames, stopgapProjects } from './featured';
 import type { Project } from './projectTypes';
 
-export type { Project, ProjectCategory, ProjectImprovement, ProjectSubLink, ProjectsFile, ProjectUpdate } from './projectTypes';
+export type { Project, ProjectCategory, ProjectImprovement, ProjectSubLink, ProjectsFile, ProjectUpdate, NowItem, OutreachItem, About } from './projectTypes';
 
 const file = parseProjectsFile(raw);
 
@@ -34,6 +34,11 @@ export const projects: Project[] = [...stopgap, ...file.projects].map(withFeatur
 
 /** Pulse's site-wide #public updates, newest first (version 2 exports; empty before that). */
 export const updates = [...(file.updates ?? [])].sort((a, b) => b.date.localeCompare(a.date));
+
+/** Pulse's Now, Outreach and About (version 2 exports; empty or undefined before that). */
+export const now = file.now ?? [];
+export const outreach = file.outreach ?? [];
+export const about = file.about;
 
 /** The featured projects, in the order data/featured.ts lists them. */
 export const featuredProjects: Project[] = projects

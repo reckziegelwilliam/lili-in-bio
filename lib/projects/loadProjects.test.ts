@@ -67,6 +67,31 @@ describe('parseProjectsFile', () => {
     expect(() => parseProjectsFile(raw)).toThrow('updates[0].date must be YYYY-MM-DD');
   });
 
+  it("reads version 2's Now, Outreach and About", () => {
+    const raw = valid();
+    raw.version = 2;
+    raw.now = [{ name: 'word box', href: 'https://words.example', text: 'writing chapter 4', audience: [] }];
+    raw.outreach = [{ title: 'Testers', description: 'try the beta', href: 'mailto:me@example.com', kind: 'feedback' }];
+    raw.about = { bio: 'hello', contact: 'write any time', links: [{ name: 'site', href: 'https://example.com' }] };
+    const file = parseProjectsFile(raw);
+    expect(file.now).toEqual(raw.now);
+    expect(file.outreach).toEqual(raw.outreach);
+    expect(file.about).toEqual(raw.about);
+  });
+
+  it('rejects an outreach link that is neither https nor mailto', () => {
+    const raw = valid();
+    raw.version = 2;
+    raw.outreach = [{ title: 'x', description: 'y', href: 'http://plain.example', kind: 'other' }];
+    expect(() => parseProjectsFile(raw)).toThrow('outreach[0].href must start with https://');
+  });
+
+  it('ignores version 2 sections in a version 1 file', () => {
+    const raw = valid();
+    raw.about = { bio: 'hello', contact: '', links: [] };
+    expect(parseProjectsFile(raw).about).toBeUndefined();
+  });
+
   it('rejects another version', () => {
     const raw = valid();
     raw.version = 3;

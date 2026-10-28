@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { MiniConstellation } from './MiniConstellation';
+import { about } from '@/data/projects';
 
-// Notes and About join the nav when they have pages worth visiting.
+// About joins the nav once Pulse publishes it; notes when there are some.
 export function SiteHeader() {
   return (
     <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6 sm:px-10 sm:py-8">
@@ -11,6 +12,11 @@ export function SiteHeader() {
       </Link>
       <nav aria-label="Main navigation" className="flex gap-6 text-sm text-[#ECE8DF]/70 sm:gap-8 sm:text-base">
         <a href="/#index" className="transition-colors hover:text-white">index</a>
+        {about && (
+          <Link href="/about" className="transition-colors hover:text-white">
+            about
+          </Link>
+        )}
       </nav>
     </header>
   );
