@@ -236,10 +236,13 @@ function Label({ text, strength, featured, offset = 0 }: { text: string; strengt
 
 function QuietStar({ star, position, hovered, dimmed, selected, coarse, onHover, onSelect }: StarProps) {
   const mat = useRef<THREE.MeshStandardMaterial>(null);
+  const body = useRef<THREE.Mesh>(null);
   useFrame((_, dt) => {
     if (!mat.current) return;
     const target = (dimmed ? 0.25 : 1.1) * (hovered || selected ? 1.9 : 1);
     mat.current.emissiveIntensity += (target - mat.current.emissiveIntensity) * Math.min(1, dt * 8);
+    // Receding stars also shrink, so ones near the camera don't crowd a selected star.
+    if (body.current) body.current.scale.setScalar(ease(body.current.scale.x, dimmed ? 0.55 : 1, dt, 5));
   });
   return (
     <group position={position}>
@@ -247,7 +250,7 @@ function QuietStar({ star, position, hovered, dimmed, selected, coarse, onHover,
         <sphereGeometry args={[coarse ? 0.9 : 0.6, 8, 8]} />
         <meshBasicMaterial visible={false} />
       </mesh>
-      <mesh raycast={() => null}>
+      <mesh ref={body} raycast={() => null}>
         <sphereGeometry args={[0.15, 16, 16]} />
         <meshStandardMaterial ref={mat} color={star.color} emissive={star.color} emissiveIntensity={1.1} />
       </mesh>
@@ -265,7 +268,8 @@ function FeaturedStar({ star, position, hovered, dimmed, selected, coarse, onHov
         <sphereGeometry args={[coarse ? 2.1 : 1.6, 10, 10]} />
         <meshBasicMaterial visible={false} />
       </mesh>
-      {motif === 'contour' && <ContourStar color={star.color} active={active} dimmed={dimmed} />}
+      {motif === 'contour' && <ContourStar color={star.color} active={active} dimmed={dimmed} opened={selected} />}
+      {motif === 'contour' && <ForestPortal open={selected} coarse={coarse} />}
       {motif === 'orbit' && <OrbitStar color={star.color} active={active} dimmed={dimmed} />}
       {motif === 'eclipse' && <EclipseStar color={star.color} active={active} dimmed={dimmed} />}
       {/* Selected: the focus panel names it. */}
@@ -283,21 +287,24 @@ interface MotifProps {
 /** A small easing helper for per-frame values kept in refs. */
 const ease = (current: number, target: number, dt: number, speed = 4) => current + (target - current) * Math.min(1, dt * speed);
 
-function Core({ color, active, dimmed, radius = 0.3 }: MotifProps & { radius?: number }) {
+function Core({ color, active, dimmed, radius = 0.3, shrink = false }: MotifProps & { radius?: number; shrink?: boolean }) {
   const mat = useRef<THREE.MeshStandardMaterial>(null);
+  const mesh = useRef<THREE.Mesh>(null);
   useFrame((_, dt) => {
     if (mat.current) mat.current.emissiveIntensity = ease(mat.current.emissiveIntensity, dimmed ? 0.3 : active ? 2.2 : 1.4, dt, 6);
+    if (mesh.current) mesh.current.scale.setScalar(ease(mesh.current.scale.x, shrink ? 0.3 : 1, dt, 3));
   });
   return (
-    <mesh raycast={() => null}>
+    <mesh ref={mesh} raycast={() => null}>
       <sphereGeometry args={[radius, 32, 32]} />
       <meshStandardMaterial ref={mat} color={color} emissive={color} emissiveIntensity={1.4} />
     </mesh>
   );
 }
 
-/** TerraTrace: irregular contour rings, like elevation lines around a summit. They open out when the star is lit. */
-function ContourStar(props: MotifProps) {
+/** TerraTrace: irregular contour rings, like elevation lines around a summit. They open out when the star is lit, and
+ *  give way to the forest when it is selected. */
+function ContourStar(props: MotifProps & { opened: boolean }) {
   const rings = useMemo(
     () =>
       [0.62, 0.95, 1.32, 1.75].map((r, i) =>
@@ -321,7 +328,7 @@ function ContourStar(props: MotifProps) {
   });
   return (
     <>
-      <Core {...props} radius={0.28} />
+      <Core color={props.color} active={props.active && !props.opened} dimmed={props.dimmed || props.opened} radius={0.28} shrink={props.opened} />
       <group ref={group} rotation={[-1.05, 0, 0]}>
         {rings.map((points, i) => (
           <Line
@@ -330,11 +337,114 @@ function ContourStar(props: MotifProps) {
             color={props.color}
             lineWidth={1}
             transparent
-            opacity={(props.dimmed ? 0.12 : props.active ? 0.85 : 0.5) * (1 - i * 0.16)}
+            opacity={(props.opened ? 0.18 : props.dimmed ? 0.12 : props.active ? 0.85 : 0.5) * (1 - i * 0.16)}
           />
         ))}
       </group>
     </>
+  );
+}
+
+/**
+ * TerraTrace's way in: points scattered around the star gather into a forest of point clouds on rolling ground, the
+ * way TerraTrace's lidar views read. Decorative: an impression of the project's medium, not its data (the real views
+ * belong in the focus panel's media).
+ */
+function ForestPortal({ open, coarse }: { open: boolean; coarse: boolean }) {
+  const count = coarse ? 3200 : 6500;
+  const { start, target, colors, delay } = useMemo(() => {
+    const rand = seeded(2018);
+    const start = new Float32Array(count * 3);
+    const target = new Float32Array(count * 3);
+    const colors = new Float32Array(count * 3);
+    const delay = new Float32Array(count);
+    const ground = (x: number, y: number) => 0.35 * Math.sin(x * 0.7) * Math.cos(y * 0.9) + 0.18 * Math.sin(x * 1.9 + y * 1.3);
+    const trees = Array.from({ length: 48 }, () => ({ x: (rand() - 0.5) * 9, y: (rand() - 0.5) * 5, h: 1.3 + rand() * 1.8, r: 0.35 + rand() * 0.35 }));
+    const moss = new THREE.Color('#4E6B60');
+    const leaf = new THREE.Color('#9FC9B4');
+    const light = new THREE.Color('#ECE8DF');
+    const c = new THREE.Color();
+    for (let i = 0; i < count; i++) {
+      // Start: a loose shell of "stars" around TerraTrace.
+      const r = 2.2 + rand() * 4;
+      const th = rand() * Math.PI * 2;
+      const ph = Math.acos(2 * rand() - 1);
+      start.set([r * Math.sin(ph) * Math.cos(th), r * Math.sin(ph) * Math.sin(th), r * Math.cos(ph)], i * 3);
+      // Target: about a third ground, the rest tree crowns (narrowing cones above the ground).
+      let x: number, y: number, z: number;
+      if (rand() < 0.2) {
+        x = (rand() - 0.5) * 10;
+        y = (rand() - 0.5) * 7;
+        z = ground(x, y);
+        c.copy(moss).lerp(leaf, rand() * 0.3);
+      } else {
+        const t = trees[Math.floor(rand() * trees.length)];
+        const along = rand();
+        const radius = t.r * (1 - along * 0.9) * (0.65 + 0.35 * Math.sqrt(rand()));
+        const a = rand() * Math.PI * 2;
+        x = t.x + Math.cos(a) * radius;
+        y = t.y + Math.sin(a) * radius;
+        z = ground(t.x, t.y) + 0.2 + along * t.h;
+        c.copy(leaf).lerp(light, along * 0.6);
+      }
+      target.set([x, y, z], i * 3);
+      colors.set([c.r, c.g, c.b], i * 3);
+      delay[i] = rand();
+    }
+    return { start, target, colors, delay };
+  }, [count, coarse]);
+
+  const geometry = useMemo(() => {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(start.slice(), 3));
+    g.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    return g;
+  }, [start, colors]);
+  const material = useRef<THREE.PointsMaterial>(null);
+  const progress = useRef(0);
+  // Round points: a small soft disc instead of the default square.
+  const dot = useMemo(() => {
+    const c = document.createElement('canvas');
+    c.width = c.height = 32;
+    const g = c.getContext('2d');
+    if (g) {
+      const grad = g.createRadialGradient(16, 16, 0, 16, 16, 16);
+      grad.addColorStop(0, 'rgba(255,255,255,1)');
+      grad.addColorStop(0.5, 'rgba(255,255,255,0.8)');
+      grad.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = grad;
+      g.fillRect(0, 0, 32, 32);
+    }
+    return new THREE.CanvasTexture(c);
+  }, []);
+
+  useFrame((_, dt) => {
+    const before = progress.current;
+    // About 1.6 s to gather, faster to let go.
+    progress.current = Math.min(1, Math.max(0, before + (open ? dt / 1.6 : -dt / 0.9)));
+    const p = progress.current;
+    if (material.current) material.current.opacity = Math.min(1, p * 1.6);
+    if (p === before && (p === 0 || p === 1)) return;
+    const arr = geometry.attributes.position.array as Float32Array;
+    for (let i = 0; i < count; i++) {
+      // Each point leaves at its own moment, so the forest gathers rather than snaps.
+      const local = Math.min(1, Math.max(0, p * 1.5 - delay[i] * 0.5));
+      const e = local * local * (3 - 2 * local);
+      const k = i * 3;
+      arr[k] = start[k] + (target[k] - start[k]) * e;
+      arr[k + 1] = start[k + 1] + (target[k + 1] - start[k + 1]) * e;
+      arr[k + 2] = start[k + 2] + (target[k + 2] - start[k + 2]) * e;
+    }
+    geometry.attributes.position.needsUpdate = true;
+  });
+
+  return (
+    // Ground laid back like the contour rings, a little below the star.
+    <group rotation={[-1.05, 0, 0]} position={[0, -0.6, 0]}>
+      <points geometry={geometry} raycast={() => null}>
+        <pointsMaterial ref={material} map={dot} size={0.045} sizeAttenuation vertexColors transparent opacity={0} depthWrite={false} />
+      </points>
+    </group>
   );
 }
 

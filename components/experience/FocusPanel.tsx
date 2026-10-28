@@ -19,6 +19,9 @@ export const FocusPanel = forwardRef<HTMLHeadingElement, FocusPanelProps>(functi
   const { project } = star;
   const group = AFFINITIES.find((g) => g.id === star.affinity);
   const site = outsideLink(project);
+  const media = star.featured?.poster && star.featured.mediaAlt ? star.featured : null;
+  // Video plays on its own only when motion is welcome; otherwise the poster stands and controls are offered.
+  const still = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const track = (name: string) => trackEvent('Link click', { props: projectClickProps(name, source, device) });
 
   return (
@@ -26,6 +29,17 @@ export const FocusPanel = forwardRef<HTMLHeadingElement, FocusPanelProps>(functi
       aria-labelledby="focus-title"
       className="pointer-events-auto absolute inset-x-4 bottom-4 z-30 rounded-2xl border border-white/10 bg-[#0C1428]/80 p-6 text-[#ECE8DF] backdrop-blur-xl sm:inset-x-auto sm:bottom-10 sm:right-10 sm:w-[24rem]"
     >
+      {media && (
+        <figure className="-mx-2 -mt-2 mb-4 overflow-hidden rounded-xl border border-white/10">
+          {media.previewVideo ? (
+            <video className="block h-auto w-full" src={media.previewVideo} poster={media.poster} muted loop playsInline autoPlay={!still} controls={still} preload="none" aria-label={media.mediaAlt} />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img className="block h-auto w-full" src={media.poster} alt={media.mediaAlt} loading="lazy" />
+          )}
+          {media.mediaCaption && <figcaption className="px-3 py-2 text-xs text-[#ECE8DF]/60">{media.mediaCaption}</figcaption>}
+        </figure>
+      )}
       {group && (
         <p className="flex items-center gap-2 text-xs text-[#ECE8DF]/60">
           <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full" style={{ background: group.color }} />

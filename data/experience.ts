@@ -43,9 +43,13 @@ export interface FeaturedExperience {
   color: string;
   /** One line shown when the star is selected. Liam's words only; empty until he writes one. */
   microcopy?: string;
-  /** Real project media under public/media/experience/ (Phase 2). */
+  /** Real project media under public/media/experience/, shown in the focus panel. Nothing shows until set. */
   poster?: string;
   previewVideo?: string;
+  /** Required with a poster: what the image shows, for screen readers. */
+  mediaAlt?: string;
+  /** Optional line under the media. Liam's words. */
+  mediaCaption?: string;
 }
 
 /** Keyed by the slug data/projects.ts gives each featured project. */

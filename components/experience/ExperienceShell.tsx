@@ -35,17 +35,40 @@ export function ExperienceShell({ sky, dispatch, highlightAffinity, pinnedAffini
   const headingRef = useRef<HTMLHeadingElement>(null);
   const trigger = useRef<HTMLElement | null>(null);
 
+  const skyNow = useRef(sky);
+  skyNow.current = sky;
+
+  // Selecting adds a history entry, so the browser's Back button returns to the sky.
   const select = (id: string, via: 'sky' | 'button') => {
-    if (sky.selected !== id) trackEvent('Project selected', { props: { project: id, via } });
+    if (sky.selected === id) return;
+    trackEvent('Project selected', { props: { project: id, via } });
+    if (sky.mode === 'overview') window.history.pushState({ skyFocus: id }, '');
+    else window.history.replaceState({ skyFocus: id }, '');
     dispatch({ type: 'select', id });
   };
-  const back = () => {
-    if (sky.mode === 'overview') return;
+  const closeFocus = () => {
     trackEvent('Return to sky');
     dispatch({ type: 'back' });
     // Return focus to the button that opened the panel, if one did.
     requestAnimationFrame(() => trigger.current?.focus());
   };
+  const back = () => {
+    if (skyNow.current.mode === 'overview') return;
+    // Undo our own history entry; popstate below then closes the panel.
+    if (window.history.state?.skyFocus) window.history.back();
+    else closeFocus();
+  };
+
+  useEffect(() => {
+    // A leftover entry from before a reload or a visit to a project page: the sky starts closed, so drop it.
+    if (window.history.state?.skyFocus) window.history.replaceState(null, '');
+    const onPop = () => {
+      if (skyNow.current.mode === 'focused') closeFocus();
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (sky.selected) requestAnimationFrame(() => headingRef.current?.focus({ preventScroll: true }));
