@@ -34,20 +34,12 @@ export interface Project {
   subLinks?: ProjectSubLink[];
   /** Visitor sources this project is emphasised for (`x`, `instagram`, `climate`); empty or missing = everyone. */
   audience?: string[];
-  /** Featured projects (data/featured.ts) only. Stable across renames, so URLs and analytics keep working. */
+  /** Featured projects (named in data/featured.ts) only. Stable across renames, so URLs and analytics keep working. */
   id?: string;
   /** Featured projects only: the project's page is /projects/<slug>. */
   slug?: string;
-  /** Featured projects only: the stage Liam chooses to show publicly, not an internal status. */
-  stage?: string;
   /** Featured projects only: 1 is shown first. */
   featuredOrder?: number;
-  /** Featured projects only: what the project is, one paragraph each. The project page leaves out any section with no text. */
-  about?: string[];
-  /** Featured projects only: who it is for. */
-  forWhom?: string;
-  /** Featured projects only: what exists today (a product, a prototype, research). */
-  today?: string;
 }
 
 export interface ProjectsFile {

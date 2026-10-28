@@ -3,6 +3,7 @@
 import type { Project } from '@/data/projects';
 import { CATEGORY_ORDER, projects } from '@/data/projects';
 import { getCategoryColor } from '@/lib/graph/categoryColors';
+import { projectHref } from '@/lib/projects/links';
 import { matchesAudience, orderForVisitor } from '@/lib/projects/audience';
 import { projectClickProps, trackEvent } from '@/lib/utils/plausible';
 import type { VisitorSnapshot } from '@/types/visitor';
@@ -29,7 +30,7 @@ export function ProjectRows({ snapshot, highlightedName = null, highlightCategor
 
   const row = (project: Project, isFeatured: boolean) => {
     // Featured projects open their own page, which has the link out; the rest go straight to the project.
-    const href = isFeatured && project.slug ? `/projects/${project.slug}` : project.href;
+    const href = projectHref(project);
     const external = /^https?:\/\//.test(href);
     const inGroup = highlightCategory !== null && project.category === highlightCategory;
     const emphasised = highlightedName === project.name || matchesAudience(project, snapshot?.source) || inGroup;
@@ -52,7 +53,6 @@ export function ProjectRows({ snapshot, highlightedName = null, highlightCategor
           </span>
           <span className="col-span-3 col-start-1 row-start-2 text-sm text-white/70 sm:col-span-1 sm:col-start-3 sm:row-start-1 sm:text-base">
             {project.description}
-            {isFeatured && project.stage ? <span className="sr-only"> Stage: {project.stage}.</span> : null}
           </span>
           <span aria-hidden="true" className="text-white/50 transition-transform group-hover:translate-x-0.5 group-hover:text-white">↗</span>
         </a>

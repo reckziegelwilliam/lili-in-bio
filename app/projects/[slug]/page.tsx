@@ -2,7 +2,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { SiteHeader } from '@/components/site/SiteHeader';
-import { featuredProjects } from '@/data/featured';
+import { getCategoryColor } from '@/lib/graph/categoryColors';
+import { featuredProjects } from '@/data/projects';
+import { outsideLink } from '@/lib/projects/links';
 
 interface PageProps {
   params: { slug: string };
@@ -39,7 +41,9 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export default function ProjectPage({ params }: PageProps) {
   const project = findProject(params.slug);
   if (!project) notFound();
-  const external = /^https?:\/\//.test(project.href);
+  const site = outsideLink(project);
+  const latest = project.recentImprovements ?? [];
+  const links = project.subLinks ?? [];
 
   return (
     <main className="min-h-screen bg-[#05060a] text-white">
@@ -50,11 +54,14 @@ export default function ProjectPage({ params }: PageProps) {
         </Link>
         <h1 className="mt-8 text-5xl font-medium tracking-tight sm:text-6xl">{project.name}</h1>
         <p className="mt-4 text-xl text-white/70">{project.description}</p>
-        {project.stage && <p className="mt-3 text-sm text-white/50">{project.stage}</p>}
+        <p className="mt-3 flex items-center gap-2 text-sm text-white/50">
+          <span aria-hidden="true" className="h-2 w-2 rounded-full" style={{ background: getCategoryColor(project.category) }} />
+          {project.category.toLowerCase()}
+        </p>
 
-        {external && (
+        {site && (
           <a
-            href={project.href}
+            href={site}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-8 inline-flex items-center gap-3 border-b border-white/30 pb-3 text-lg transition-colors hover:border-white"
@@ -63,25 +70,37 @@ export default function ProjectPage({ params }: PageProps) {
           </a>
         )}
 
-        <div className="mt-14">
-          {project.about && project.about.length > 0 && (
-            <Section title="what it is">
-              {project.about.map((paragraph) => (
-                <p key={paragraph}>{paragraph}</p>
-              ))}
-            </Section>
-          )}
-          {project.forWhom && (
-            <Section title="who it's for">
-              <p>{project.forWhom}</p>
-            </Section>
-          )}
-          {project.today && (
-            <Section title="what exists today">
-              <p>{project.today}</p>
-            </Section>
-          )}
-        </div>
+        {/* Only what Project Pulse publishes for this project: its dated #public updates and its links. */}
+        {(latest.length > 0 || links.length > 0) && (
+          <div className="mt-14">
+            {latest.length > 0 && (
+              <Section title="latest">
+                <ul className="space-y-3">
+                  {latest.map((u) => (
+                    <li key={`${u.date}-${u.text}`}>
+                      <span className="mr-3 text-sm text-white/50">{u.date}</span>
+                      {u.text}
+                    </li>
+                  ))}
+                </ul>
+              </Section>
+            )}
+            {links.length > 0 && (
+              <Section title="links">
+                <ul className="space-y-2">
+                  {links.map((l) => (
+                    <li key={l.href}>
+                      <a href={l.href} target="_blank" rel="noopener noreferrer" className="underline decoration-white/30 underline-offset-4 hover:decoration-white">
+                        {l.name}
+                      </a>
+                      {l.description ? <span className="text-white/60"> — {l.description}</span> : null}
+                    </li>
+                  ))}
+                </ul>
+              </Section>
+            )}
+          </div>
+        )}
       </article>
     </main>
   );

@@ -82,7 +82,8 @@ function subLinks(value: unknown, where: string): ProjectSubLink[] {
 /** Validates data/projects.json (written by Project Pulse) and returns the site's types. Unknown keys are ignored. */
 export function parseProjectsFile(raw: unknown): ProjectsFile {
   if (!isObj(raw)) fail('the file must hold a JSON object');
-  if (raw.version !== 1) fail(`version must be 1 (it is ${JSON.stringify(raw.version)})`);
+  // Version 2 adds Now, Updates, Outreach and About, which this site doesn't read yet; Work is the same in both.
+  if (raw.version !== 1 && raw.version !== 2) fail(`version must be 1 or 2 (it is ${JSON.stringify(raw.version)})`);
 
   const rawCategories = raw.categories;
   if (!Array.isArray(rawCategories) || rawCategories.length === 0) fail('categories must be a non-empty array');

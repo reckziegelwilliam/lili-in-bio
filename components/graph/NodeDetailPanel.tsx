@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import type { Project } from '@/data/projects';
+import { outsideLink, projectHref } from '@/lib/projects/links';
 import { projectClickProps, trackEvent } from '@/lib/utils/plausible';
 import type { VisitorSnapshot } from '@/types/visitor';
 
@@ -40,7 +41,6 @@ export function NodeDetailPanel({ project, snapshot, onClose }: NodeDetailPanelP
       </button>
 
       <h2 className="pr-8 text-2xl font-medium tracking-tight text-white">{project.name}</h2>
-      {project.stage && <p className="mt-1 text-sm text-white/50">{project.stage}</p>}
 
       {project.description && <p className="mt-2 text-sm text-white/80">{project.description}</p>}
 
@@ -76,15 +76,15 @@ export function NodeDetailPanel({ project, snapshot, onClose }: NodeDetailPanelP
       {project.slug ? (
         <>
           <a
-            href={`/projects/${project.slug}`}
+            href={projectHref(project)}
             onClick={handleOpenClick}
             className="mt-4 block w-full rounded-xl bg-white py-3 text-center text-sm font-medium text-black hover:bg-white/90"
           >
             View {project.name} →
           </a>
-          {/^https?:\/\//.test(project.href) && (
+          {outsideLink(project) && (
             <a
-              href={project.href}
+              href={outsideLink(project) ?? undefined}
               target="_blank"
               rel="noopener noreferrer"
               onClick={handleOpenClick}

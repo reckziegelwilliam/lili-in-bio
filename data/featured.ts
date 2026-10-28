@@ -1,49 +1,34 @@
-// The projects Liam is working on now, written by hand in this repo. data/projects.json is rewritten by Project Pulse,
-// so these live apart from it and data/projects.ts puts them in front of that list.
+// Which projects are featured on lili-in.bio, and in what order. Their words (blurb, link, category) belong to Project
+// Pulse and arrive in data/projects.json when Liam presses Publish; only the presentation lives here.
 import type { Project } from './projectTypes';
 
-export const featuredProjects: Project[] = [
+export const featuredNames = ['Longsignal', 'TerraTrace', 'Ashwake'] as const;
+
+// A stopgap for the first Publish: the same rows now in Pulse's public.md, used only while data/projects.json lacks a
+// featured name. Once Publish has written them, these are ignored and can be deleted.
+export const stopgapProjects: Project[] = [
   {
-    id: 'longsignal',
-    slug: 'longsignal',
     name: 'Longsignal',
     href: 'https://longsignal.app',
     enabled: true,
     category: 'Tools',
     description: 'Indie business data for early-stage founders.',
-    about: [
-      'Longsignal helps independent software founders understand how their business is progressing, through private, evidenced history: readings, milestones and monthly reviews.',
-    ],
-    forWhom: 'Independent software founders.',
-    today: 'Live at longsignal.app and in active development.',
-    stage: 'in progress',
-    featuredOrder: 1,
     audience: [],
   },
   {
-    id: 'terratrace',
-    slug: 'terratrace',
     name: 'TerraTrace',
-    // No public site yet: the page that explains it is /projects/terratrace.
-    href: '/projects/terratrace',
+    href: 'https://liamrex.world/projects/terratrace',
     enabled: true,
     category: 'Climate & Environment',
     description: '3D climate insights for field research.',
-    stage: 'in progress',
-    featuredOrder: 2,
     audience: [],
   },
   {
-    id: 'ashwake',
-    slug: 'ashwake',
     name: 'Ashwake',
-    // No public site yet: the page that explains it is /projects/ashwake.
-    href: '/projects/ashwake',
+    href: 'https://liamrex.world/projects/ashwake',
     enabled: true,
     category: 'Games',
-    description: 'A dark-fantasy horror RPG.',
-    stage: 'in progress',
-    featuredOrder: 3,
+    description: 'A dark-fantasy horror RPG in Unreal.',
     audience: [],
   },
 ];

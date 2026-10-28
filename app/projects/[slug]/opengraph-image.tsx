@@ -1,5 +1,5 @@
 import { ImageResponse } from 'next/og';
-import { featuredProjects } from '@/data/featured';
+import { featuredProjects } from '@/data/projects';
 
 export const alt = 'liam rex project';
 export const size = { width: 1200, height: 630 };

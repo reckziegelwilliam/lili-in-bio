@@ -51,10 +51,17 @@ describe('parseProjectsFile', () => {
     ]);
   });
 
-  it('rejects another version', () => {
+  it('reads a version 2 file, ignoring the sections it does not use yet', () => {
     const raw = valid();
     raw.version = 2;
-    expect(() => parseProjectsFile(raw)).toThrow('data/projects.json: version must be 1 (it is 2)');
+    raw.now = [{ name: 'x', href: 'https://x.test', text: 't', audience: [] }];
+    expect(parseProjectsFile(raw).projects.length).toBe(parseProjectsFile(valid()).projects.length);
+  });
+
+  it('rejects another version', () => {
+    const raw = valid();
+    raw.version = 3;
+    expect(() => parseProjectsFile(raw)).toThrow('data/projects.json: version must be 1 or 2 (it is 3)');
   });
 
   it('rejects a link that is not https', () => {

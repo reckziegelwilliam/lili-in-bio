@@ -175,8 +175,9 @@ function SceneContent({
   }, [focusedNodeId]);
 
   // The graph sits inside the page now, so it must not swallow the wheel or a vertical swipe: OrbitControls sets
-  // touch-action: none on the canvas, which would stop a touch user scrolling past it. Runs after OrbitControls' own
-  // effect (children first), so this value wins.
+  // touch-action: none on the canvas, which would stop a touch user scrolling past it. pan-y hands vertical swipes to
+  // the page and leaves horizontal drags to the controls, so touch can still rotate the graph. Runs after OrbitControls'
+  // own effect (children first), so this value wins.
   useEffect(() => {
     if (isCoarsePointer) gl.domElement.style.touchAction = 'pan-y';
   }, [gl, isCoarsePointer]);
@@ -261,7 +262,6 @@ function SceneContent({
         enabled={!isFlying}
         enablePan={false}
         enableZoom={false}
-        enableRotate={!isCoarsePointer}
         autoRotate={!prefersReducedMotion && !isFlying}
         autoRotateSpeed={0.6}
         minDistance={cameraDistance * 0.4}
