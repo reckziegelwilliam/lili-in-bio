@@ -19,6 +19,11 @@ interface GraphNodeMeshProps {
   /** Touch devices have no hover state, so their labels stay on permanently
    *  instead of only appearing on pointer-over. */
   alwaysShowLabel: boolean;
+  /** Another group is highlighted: this node and its label recede. */
+  dimmed: boolean;
+  /** This node belongs to the highlighted group. */
+  inGroup: boolean;
+  onHover: (id: string | null) => void;
   onSelect: (node: GraphNodeData) => void;
 }
 
@@ -30,13 +35,19 @@ export function GraphNodeMesh({
   segments,
   hitRadiusMultiplier,
   alwaysShowLabel,
+  dimmed,
+  inGroup,
+  onHover,
   onSelect,
 }: GraphNodeMeshProps) {
   const [hovered, setHovered] = useState(false);
   const radius = node.baseRadius * scaleMultiplier;
   const hitRadius = radius * hitRadiusMultiplier;
   const label = node.project?.name ?? null;
-  const showLabel = label !== null && (alwaysShowLabel || hovered);
+  // Every project point is named, so a visitor can tell what they are without hovering; featured ones read a little stronger.
+  const isFeatured = node.project?.featuredOrder !== undefined;
+  const showLabel = label !== null;
+  const labelOpacity = hovered || inGroup ? 1 : dimmed ? 0.2 : isFeatured ? 0.9 : 0.6;
 
   return (
     <group position={[node.position.x, node.position.y, node.position.z]}>
@@ -52,10 +63,12 @@ export function GraphNodeMesh({
         onPointerOver={(event: ThreeEvent<PointerEvent>) => {
           event.stopPropagation();
           setHovered(true);
+          onHover(node.id);
           document.body.style.cursor = 'pointer';
         }}
         onPointerOut={() => {
           setHovered(false);
+          onHover(null);
           document.body.style.cursor = 'auto';
         }}
       >
@@ -68,15 +81,20 @@ export function GraphNodeMesh({
         <meshStandardMaterial
           color={node.color}
           emissive={node.color}
-          emissiveIntensity={baseEmissiveIntensity * emissiveMultiplier}
+          emissiveIntensity={baseEmissiveIntensity * emissiveMultiplier * (dimmed ? 0.25 : 1)}
           metalness={node.kind === 'hub' ? 0.6 : 0.1}
           roughness={node.kind === 'hub' ? 0.25 : 0.4}
         />
       </mesh>
 
       {showLabel && (
-        <Html distanceFactor={10} position={[0, radius + 0.4, 0]} center style={{ pointerEvents: 'none' }}>
-          <div className="whitespace-nowrap rounded-full border border-white/10 bg-black/70 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm">
+        <Html distanceFactor={80} position={[0, 0, 0]} style={{ pointerEvents: 'none' }}>
+          <div
+            style={{ opacity: labelOpacity, transform: `translate(14px, -50%) scale(${hovered ? 1.18 : 1})`, transformOrigin: 'left center' }}
+            className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-medium leading-tight text-white backdrop-blur-sm transition-[opacity,transform] duration-200 ${
+              hovered ? 'bg-black/70 ring-1 ring-white/30' : 'bg-black/30'
+            }`}
+          >
             {label}
           </div>
         </Html>

@@ -1,6 +1,12 @@
-# Lili's Project Portfolio - 3D Force-Directed Graph
+# liam rex - projects, as a 3D graph
 
-An interactive portfolio page showcasing projects through a **3D force-directed graph visualization**. Built with react-three-fiber for immersive WebGL rendering with bloom effects, and includes an accessible fallback list for reduced-motion and no-JavaScript scenarios.
+Liam Rex's portfolio page: a short introduction beside an interactive **3D force-directed graph** of projects, then a readable project list. Built with react-three-fiber (WebGL, bloom). The list is real HTML, so the page reads fully with reduced motion or without JavaScript.
+
+## Where the content comes from
+
+- **The project list** (`data/projects.json`) is written by Project Pulse when Liam presses Publish. Edit it in Pulse (`public.md` in `_portfolio`), not here; the file is rewritten on every Publish. It may be version 1 or 2 (version 2 adds Now, Updates, Outreach and About, which this site doesn't show yet).
+- **Featured projects** are named in `data/featured.ts`. They get a page at `/projects/<slug>`, a place at the top of the list and labels in the graph. Their words still come from Pulse. `data/featured.ts` also holds a stopgap copy of their rows, used only until a Publish includes them.
+- **Project pages** show only what Pulse publishes for a project: its blurb, category, link, dated `#public` updates and sub-links.
 
 ## 🌟 Features
 
@@ -9,14 +15,15 @@ An interactive portfolio page showcasing projects through a **3D force-directed 
 - **Force-Directed Graph**: Projects arranged in a dynamic physics-based layout (hub-and-spoke architecture with category relationship edges)
 - **WebGL Rendering**: Real-time 3D graphics with react-three-fiber and Three.js
 - **Bloom Effects**: Beautiful glow effects on project nodes using selective post-processing
-- **Smooth Interactions**: Click to expand project details, orbit camera, and inspect relationships
+- **Groups**: Hover a point or a legend item to light up that category and dim the rest
+- **Interactions**: Click a point for its details, drag to orbit (the page scrolls past the graph: no wheel zoom, and on touch only horizontal drags rotate)
 
 ### Accessible Fallback
 
-- **Semantic HTML**: Projects displayed as a complete, screenreader-friendly list for:
+- **Semantic HTML**: The project list is always on the page as real links, and is the whole experience for:
   - Users who prefer reduced motion (`prefers-reduced-motion`)
   - Users with JavaScript disabled
-- **Progressive Enhancement**: Canvas loads on top of semantic content, with proper ARIA management
+- **Progressive Enhancement**: The graph sits in the hero and loads after the page; the list and project pages don't depend on it
 
 ### Project Details
 
@@ -71,6 +78,7 @@ npm run dev
 ├── app/
 │   ├── layout.tsx                # Root layout with metadata
 │   ├── page.tsx                  # Main page composition
+│   ├── projects/[slug]/          # Featured project pages and share images
 │   └── globals.css               # Global styles and utilities
 ├── components/
 │   ├── graph/
@@ -78,8 +86,12 @@ npm run dev
 │   │   ├── GraphNode.tsx         # Project node rendering
 │   │   ├── GraphEdge.tsx         # Relationship edge rendering
 │   │   ├── GraphCanvasLoader.tsx # Canvas component with loader
-│   │   ├── NodeDetailPanel.tsx   # Click-to-expand project details
-│   │   └── AccessibleProjectList.tsx # Semantic fallback list
+│   │   └── NodeDetailPanel.tsx   # Click-to-expand project details
+│   ├── site/
+│   │   ├── SiteHeader.tsx        # liam rex wordmark and nav
+│   │   ├── MiniConstellation.tsx # The wordmark's small mark
+│   │   ├── GraphLegend.tsx       # Category key; hover or click to highlight a group
+│   │   └── ProjectRows.tsx       # Featured list and grouped "more work"
 │   └── AccessibilityUtils.tsx    # A11y utilities
 ├── lib/
 │   ├── graph/
@@ -95,7 +107,9 @@ npm run dev
 │       ├── freshness.ts          # Freshness/recency intensity for node emphasis
 │       └── plausible.ts          # Analytics tracking
 ├── data/
-│   └── projects.ts               # Project and category data
+│   ├── projects.json             # Written by Project Pulse (do not edit)
+│   ├── projects.ts               # Validated list, featured projects marked
+│   └── featured.ts               # Which projects are featured, in order
 ├── types/
 │   └── visitor.ts                # TypeScript type definitions
 ├── tailwind.config.ts            # Tailwind configuration
@@ -186,8 +200,8 @@ Visitor detection uses only browser APIs:
 
 Responsive and performant across all devices:
 
-- Full-screen 3D canvas on all devices, including mobile, with optimized rendering settings on touch devices
-- Semantic HTML fallback list when JavaScript is disabled or `prefers-reduced-motion` is set
+- The 3D graph sits in the hero on all devices, with optimized rendering settings on touch devices
+- The project list is plain HTML; with JavaScript off or `prefers-reduced-motion` set, the graph is left out and the list carries the page
 - Touch-friendly interaction with project selection
 - Responsive layout adapts to screen size and input method
 - Smooth animations respecting user preferences
@@ -198,7 +212,7 @@ Progressive enhancement ensures everyone can access project information:
 
 - **Semantic HTML**: Complete project list for screen readers and no-JS
 - **Skip-to-Content**: Direct navigation to main content
-- **Reduced Motion**: Respects `prefers-reduced-motion` by showing the semantic list instead of 3D canvas
+- **Reduced Motion**: Respects `prefers-reduced-motion` by leaving out the 3D canvas; the list is already on the page
 - **ARIA Labels**: Proper labeling on interactive elements
 - **Keyboard Navigation**: Full keyboard support for list view
 - **Color Contrast**: Text meets WCAG AA standards
@@ -211,7 +225,7 @@ Progressive enhancement ensures everyone can access project information:
 1. Push your code to GitHub
 2. Import to Vercel
 3. (Optional) Add environment variables for analytics:
-   - `NEXT_PUBLIC_SITE_URL`: Your production URL
+   - `NEXT_PUBLIC_SITE_URL`: Your production URL (defaults to https://liamrex.world; used for canonical URLs, share images and the sitemap)
    - `NEXT_PUBLIC_PLAUSIBLE_DOMAIN`: Your Plausible domain for analytics
 4. Deploy!
 
@@ -232,7 +246,7 @@ MIT License - feel free to use this as a template for your own projects!
 
 ## 🙏 Credits
 
-Designed and built by **Lili** as a demonstration of 3D visualization and interactive portfolio design.
+Designed and built by Liam Rex as a demonstration of 3D visualization and interactive portfolio design.
 
 Concept: A force-directed graph portfolio that makes project relationships visible and explorable.
 

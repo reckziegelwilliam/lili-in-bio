@@ -7,7 +7,7 @@ import type { GraphNode } from '@/lib/graph/types';
 const GraphScene = dynamic(() => import('./GraphScene').then((mod) => mod.GraphScene), {
   ssr: false,
   loading: () => (
-    <div className="flex min-h-screen items-center justify-center bg-[#05060a]">
+    <div className="flex h-full min-h-[320px] items-center justify-center">
       <div className="h-10 w-10 animate-spin rounded-full border-2 border-white/20 border-t-white/80" />
     </div>
   ),
@@ -17,11 +17,12 @@ interface GraphCanvasLoaderProps {
   /** The visitor's source; projects meant for it are emphasised. */
   visitorSource: string | null;
   focusedNodeId: string | null;
+  highlightCategory?: string | null;
   onNodeSelect: (node: GraphNode) => void;
   onActiveChange: (active: boolean) => void;
 }
 
-export function GraphCanvasLoader({ visitorSource, focusedNodeId, onNodeSelect, onActiveChange }: GraphCanvasLoaderProps) {
+export function GraphCanvasLoader({ visitorSource, focusedNodeId, highlightCategory = null, onNodeSelect, onActiveChange }: GraphCanvasLoaderProps) {
   const [isCoarsePointer, setIsCoarsePointer] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [skipCanvas, setSkipCanvas] = useState<boolean | null>(null);
@@ -46,6 +47,7 @@ export function GraphCanvasLoader({ visitorSource, focusedNodeId, onNodeSelect, 
       isCoarsePointer={isCoarsePointer}
       prefersReducedMotion={prefersReducedMotion}
       focusedNodeId={focusedNodeId}
+      highlightCategory={highlightCategory}
       onNodeSelect={onNodeSelect}
     />
   );
