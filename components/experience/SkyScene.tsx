@@ -270,8 +270,10 @@ function FeaturedStar({ star, position, hovered, dimmed, selected, coarse, onHov
       </mesh>
       {motif === 'contour' && <ContourStar color={star.color} active={active} dimmed={dimmed} opened={selected} />}
       {motif === 'contour' && <ForestPortal open={selected} coarse={coarse} />}
-      {motif === 'orbit' && <OrbitStar color={star.color} active={active} dimmed={dimmed} />}
-      {motif === 'eclipse' && <EclipseStar color={star.color} active={active} dimmed={dimmed} />}
+      {motif === 'orbit' && <OrbitStar color={star.color} active={active} dimmed={dimmed} opened={selected} />}
+      {motif === 'orbit' && <NetworkPortal open={selected} coarse={coarse} color={star.color} />}
+      {motif === 'eclipse' && <EclipseStar color={star.color} active={active} dimmed={dimmed} opened={selected} />}
+      {motif === 'eclipse' && <EmberVortex open={selected} coarse={coarse} />}
       {/* Selected: the focus panel names it. */}
       <Label text={star.project.name} strength={selected ? 0 : active ? 1 : dimmed ? 0.25 : 0.88} featured offset={motif === 'eclipse' ? 1.05 : 2.05} />
     </group>
@@ -345,6 +347,34 @@ function ContourStar(props: MotifProps & { opened: boolean }) {
   );
 }
 
+/** Round points: a small soft disc instead of three.js's default square. Made once, shared by every point cloud. */
+let dotTexture: THREE.CanvasTexture | null = null;
+function useDotTexture() {
+  return useMemo(() => {
+    if (dotTexture) return dotTexture;
+    const c = document.createElement('canvas');
+    c.width = c.height = 32;
+    const g = c.getContext('2d');
+    if (g) {
+      const grad = g.createRadialGradient(16, 16, 0, 16, 16, 16);
+      grad.addColorStop(0, 'rgba(255,255,255,1)');
+      grad.addColorStop(0.5, 'rgba(255,255,255,0.8)');
+      grad.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = grad;
+      g.fillRect(0, 0, 32, 32);
+    }
+    dotTexture = new THREE.CanvasTexture(c);
+    return dotTexture;
+  }, []);
+}
+
+/** Eases a 0–1 progress ref toward open (over `inS` seconds) or closed (over `outS`). Returns true while it moved. */
+function stepProgress(progress: { current: number }, open: boolean, dt: number, inS: number, outS: number) {
+  const before = progress.current;
+  progress.current = Math.min(1, Math.max(0, before + (open ? dt / inS : -dt / outS)));
+  return progress.current !== before;
+}
+
 /**
  * TerraTrace's way in: points scattered around the star gather into a forest of point clouds on rolling ground, the
  * way TerraTrace's lidar views read. Decorative: an impression of the project's medium, not its data (the real views
@@ -402,21 +432,7 @@ function ForestPortal({ open, coarse }: { open: boolean; coarse: boolean }) {
   }, [start, colors]);
   const material = useRef<THREE.PointsMaterial>(null);
   const progress = useRef(0);
-  // Round points: a small soft disc instead of the default square.
-  const dot = useMemo(() => {
-    const c = document.createElement('canvas');
-    c.width = c.height = 32;
-    const g = c.getContext('2d');
-    if (g) {
-      const grad = g.createRadialGradient(16, 16, 0, 16, 16, 16);
-      grad.addColorStop(0, 'rgba(255,255,255,1)');
-      grad.addColorStop(0.5, 'rgba(255,255,255,0.8)');
-      grad.addColorStop(1, 'rgba(255,255,255,0)');
-      g.fillStyle = grad;
-      g.fillRect(0, 0, 32, 32);
-    }
-    return new THREE.CanvasTexture(c);
-  }, []);
+  const dot = useDotTexture();
 
   useFrame((_, dt) => {
     const before = progress.current;
@@ -448,8 +464,9 @@ function ForestPortal({ open, coarse }: { open: boolean; coarse: boolean }) {
   );
 }
 
-/** Longsignal: small bodies on their own orbits; when lit, threads appear between them, a network forming. */
-function OrbitStar(props: MotifProps) {
+/** Longsignal: small bodies on their own orbits; when lit, threads appear between them, a network forming. Selected,
+ *  they step back for the larger network. */
+function OrbitStar(props: MotifProps & { opened: boolean }) {
   const orbits = useMemo(
     () => [
       { r: 0.8, speed: 0.55, tilt: [0.9, 0.2, 0] as Vec3Tuple, phase: 0 },
@@ -493,7 +510,7 @@ function OrbitStar(props: MotifProps) {
 
   return (
     <>
-      <Core {...props} radius={0.26} />
+      <Core color={props.color} active={props.active && !props.opened} dimmed={props.dimmed || props.opened} radius={0.26} shrink={props.opened} />
       {orbits.map((o, i) => (
         <group key={i} rotation={o.tilt}>
           <Line
@@ -504,7 +521,7 @@ function OrbitStar(props: MotifProps) {
             color={props.color}
             lineWidth={0.6}
             transparent
-            opacity={props.dimmed ? 0.05 : props.active ? 0.3 : 0.14}
+            opacity={props.opened ? 0.06 : props.dimmed ? 0.05 : props.active ? 0.3 : 0.14}
           />
         </group>
       ))}
@@ -513,7 +530,7 @@ function OrbitStar(props: MotifProps) {
             bodies.current[i] = m;
           }} raycast={() => null}>
           <sphereGeometry args={[0.07, 12, 12]} />
-          <meshStandardMaterial color={props.color} emissive={props.color} emissiveIntensity={props.dimmed ? 0.3 : 1.6} />
+          <meshStandardMaterial color={props.color} emissive={props.color} emissiveIntensity={props.opened ? 0.5 : props.dimmed ? 0.3 : 1.6} />
         </mesh>
       ))}
       <lineSegments geometry={threads} raycast={() => null}>
@@ -523,10 +540,12 @@ function OrbitStar(props: MotifProps) {
   );
 }
 
-/** Ashwake: a dark body with an ember corona, and a few embers drifting up through it. */
-function EclipseStar(props: MotifProps) {
+/** Ashwake: a dark body with an ember corona, and a few embers drifting up through it. Selected, the eclipse widens
+ *  into a dark opening, where Ashwake's real footage will go. */
+function EclipseStar(props: MotifProps & { opened: boolean }) {
   const corona = useRef<THREE.MeshBasicMaterial>(null);
   const halo = useRef<THREE.Group>(null);
+  const body = useRef<THREE.Mesh>(null);
   const embers = useRef<THREE.Points>(null);
   const emberData = useMemo(() => {
     const rand = seeded(42);
@@ -543,8 +562,10 @@ function EclipseStar(props: MotifProps) {
   }, []);
 
   useFrame((_, dt) => {
-    if (corona.current) corona.current.opacity = ease(corona.current.opacity, props.dimmed ? 0.25 : props.active ? 1 : 0.75, dt, 4);
-    if (halo.current) halo.current.scale.setScalar(ease(halo.current.scale.x, props.active ? 1.12 : 1, dt, 3));
+    if (corona.current) corona.current.opacity = ease(corona.current.opacity, props.opened ? 0.7 : props.dimmed ? 0.25 : props.active ? 1 : 0.75, dt, 4);
+    const widen = props.opened ? 2.4 : props.active ? 1.12 : 1;
+    if (halo.current) halo.current.scale.setScalar(ease(halo.current.scale.x, widen, dt, 1.8));
+    if (body.current) body.current.scale.setScalar(ease(body.current.scale.x, props.opened ? 2.35 : 1, dt, 1.8));
     const attr = embers.current?.geometry.attributes.position;
     if (attr) {
       const arr = attr.array as Float32Array;
@@ -558,8 +579,8 @@ function EclipseStar(props: MotifProps) {
 
   return (
     <>
-      <mesh raycast={() => null}>
-        <sphereGeometry args={[0.5, 32, 32]} />
+      <mesh ref={body} raycast={() => null}>
+        <sphereGeometry args={[0.5, 48, 48]} />
         <meshBasicMaterial color="#020306" />
       </mesh>
       <Billboard>
@@ -570,7 +591,7 @@ function EclipseStar(props: MotifProps) {
           </mesh>
           <mesh raycast={() => null} position={[0, 0, -0.04]}>
             <ringGeometry args={[0.58, 0.95, 64]} />
-            <meshBasicMaterial color={props.color} transparent opacity={props.dimmed ? 0.02 : 0.06} />
+            <meshBasicMaterial color={props.color} transparent opacity={props.opened ? 0.025 : props.dimmed ? 0.02 : 0.06} />
           </mesh>
         </group>
       </Billboard>
@@ -581,5 +602,174 @@ function EclipseStar(props: MotifProps) {
         <pointsMaterial size={0.06} color="#E09A6E" transparent opacity={props.dimmed ? 0.2 : 0.8} depthWrite={false} />
       </points>
     </>
+  );
+}
+
+/**
+ * Longsignal's way in: the orbiting bodies multiply into a network of small, unnamed points in loose clusters;
+ * connections draw outward from the star and signals travel along them. Generated, with no labels or values: an
+ * impression of the product, not findings (the real interface belongs in the focus panel's media).
+ */
+function NetworkPortal({ open, coarse, color }: { open: boolean; coarse: boolean; color: string }) {
+  const n = coarse ? 70 : 130;
+  const net = useMemo(() => {
+    const rand = seeded(7331);
+    const clusters = Array.from({ length: 6 }, () => [(rand() - 0.5) * 8, (rand() - 0.5) * 5, (rand() - 0.5) * 3]);
+    const start = new Float32Array(n * 3);
+    const target = new Float32Array(n * 3);
+    const delay = new Float32Array(n);
+    const home = new Int32Array(n);
+    for (let i = 0; i < n; i++) {
+      // Start on the star's orbits; end in a cluster.
+      const a = rand() * Math.PI * 2;
+      const r = 0.8 + rand() * 1.1;
+      start.set([Math.cos(a) * r, Math.sin(a) * r, (rand() - 0.5) * 0.6], i * 3);
+      const c = clusters[i % clusters.length];
+      home[i] = i % clusters.length;
+      const spread = 0.4 + rand() * 1.1;
+      const u = rand() * Math.PI * 2;
+      const v = Math.acos(2 * rand() - 1);
+      target.set([c[0] + spread * Math.sin(v) * Math.cos(u), c[1] + spread * Math.sin(v) * Math.sin(u), c[2] + spread * Math.cos(v) * 0.6], i * 3);
+      delay[i] = rand();
+    }
+    // Edges: each point to its two nearest neighbours, plus a few long links between clusters.
+    const dist = (i: number, j: number) => Math.hypot(target[i * 3] - target[j * 3], target[i * 3 + 1] - target[j * 3 + 1], target[i * 3 + 2] - target[j * 3 + 2]);
+    const seen = new Set<string>();
+    const edges: [number, number][] = [];
+    const add = (i: number, j: number) => {
+      const key = i < j ? `${i}-${j}` : `${j}-${i}`;
+      if (i !== j && !seen.has(key)) {
+        seen.add(key);
+        edges.push([i, j]);
+      }
+    };
+    for (let i = 0; i < n; i++) {
+      const nearest = Array.from({ length: n }, (_, j) => j)
+        .filter((j) => j !== i)
+        .sort((a, b) => dist(i, a) - dist(i, b))
+        .slice(0, 2);
+      nearest.forEach((j) => add(i, j));
+    }
+    for (let k = 0; k < 10; k++) add(Math.floor(rand() * n), Math.floor(rand() * n));
+    // Draw nearer connections first, so the network grows outward from the star.
+    const reach = (e: [number, number]) => Math.hypot(target[e[0] * 3], target[e[0] * 3 + 1], target[e[0] * 3 + 2]);
+    edges.sort((a, b) => reach(a) - reach(b));
+    return { start, target, delay, edges, home };
+  }, [n]);
+
+  const nodes = useMemo(() => {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(net.start.slice(), 3));
+    return g;
+  }, [net]);
+  const links = useMemo(() => {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(net.edges.length * 6), 3));
+    g.setDrawRange(0, 0);
+    return g;
+  }, [net]);
+  const pulseCount = coarse ? 12 : 28;
+  const pulses = useMemo(() => {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(pulseCount * 3), 3));
+    return g;
+  }, [pulseCount]);
+  const pulseState = useRef(Array.from({ length: pulseCount }, (_, i) => ({ edge: i, t: (i * 0.37) % 1, speed: 0.35 + ((i * 0.53) % 1) * 0.5 })));
+  const nodeMat = useRef<THREE.PointsMaterial>(null);
+  const linkMat = useRef<THREE.LineBasicMaterial>(null);
+  const pulseMat = useRef<THREE.PointsMaterial>(null);
+  const progress = useRef(0);
+  const dot = useDotTexture();
+
+  useFrame((_, dt) => {
+    const moved = stepProgress(progress, open, dt, 1.8, 0.9);
+    const p = progress.current;
+    if (nodeMat.current) nodeMat.current.opacity = Math.min(1, p * 1.5);
+    if (linkMat.current) linkMat.current.opacity = 0.32 * p;
+    if (pulseMat.current) pulseMat.current.opacity = p;
+    if (p === 0) return;
+    const pos = nodes.attributes.position.array as Float32Array;
+    if (moved) {
+      for (let i = 0; i < n; i++) {
+        const local = Math.min(1, Math.max(0, p * 1.5 - net.delay[i] * 0.5));
+        const e = local * local * (3 - 2 * local);
+        for (let k = i * 3; k < i * 3 + 3; k++) pos[k] = net.start[k] + (net.target[k] - net.start[k]) * e;
+      }
+      nodes.attributes.position.needsUpdate = true;
+      const line = links.attributes.position.array as Float32Array;
+      net.edges.forEach(([a, b], j) => {
+        line.set([pos[a * 3], pos[a * 3 + 1], pos[a * 3 + 2], pos[b * 3], pos[b * 3 + 1], pos[b * 3 + 2]], j * 6);
+      });
+      links.attributes.position.needsUpdate = true;
+      links.setDrawRange(0, Math.round(net.edges.length * Math.min(1, Math.max(0, (p - 0.35) / 0.65))) * 2);
+    }
+    // Signals: each runs along a drawn connection, then picks another.
+    const shown = Math.max(1, Math.round(net.edges.length * Math.min(1, Math.max(0, (p - 0.35) / 0.65))));
+    const out = pulses.attributes.position.array as Float32Array;
+    pulseState.current.forEach((s, i) => {
+      s.t += dt * s.speed;
+      if (s.t >= 1 || s.edge >= shown) {
+        s.t = 0;
+        s.edge = (s.edge * 7 + i * 13 + 5) % shown;
+      }
+      const [a, b] = net.edges[s.edge];
+      for (let k = 0; k < 3; k++) out[i * 3 + k] = pos[a * 3 + k] + (pos[b * 3 + k] - pos[a * 3 + k]) * s.t;
+    });
+    pulses.attributes.position.needsUpdate = true;
+  });
+
+  return (
+    <group>
+      <lineSegments geometry={links} raycast={() => null}>
+        <lineBasicMaterial ref={linkMat} color={color} transparent opacity={0} depthWrite={false} />
+      </lineSegments>
+      <points geometry={nodes} raycast={() => null}>
+        <pointsMaterial ref={nodeMat} map={dot} size={0.11} sizeAttenuation color={color} transparent opacity={0} depthWrite={false} />
+      </points>
+      <points geometry={pulses} raycast={() => null}>
+        <pointsMaterial ref={pulseMat} map={dot} size={0.16} sizeAttenuation color="#ECE8DF" transparent opacity={0} depthWrite={false} blending={THREE.AdditiveBlending} />
+      </points>
+    </group>
+  );
+}
+
+/** Ashwake's way in: embers spiral into the widening eclipse. Facing the camera, so the spiral always reads. */
+function EmberVortex({ open, coarse }: { open: boolean; coarse: boolean }) {
+  const m = coarse ? 180 : 380;
+  const state = useMemo(() => {
+    const rand = seeded(99);
+    return Array.from({ length: m }, () => ({ a: rand() * Math.PI * 2, r: 1.9 + rand() * 4.5, z: (rand() - 0.5) * 0.8, s: 0.6 + rand() * 0.8 }));
+  }, [m]);
+  const geometry = useMemo(() => {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(m * 3), 3));
+    return g;
+  }, [m]);
+  const mat = useRef<THREE.PointsMaterial>(null);
+  const progress = useRef(0);
+  const dot = useDotTexture();
+
+  useFrame((_, dt) => {
+    stepProgress(progress, open, dt, 1.6, 0.8);
+    const p = progress.current;
+    if (mat.current) mat.current.opacity = 0.9 * p;
+    if (p === 0) return;
+    const arr = geometry.attributes.position.array as Float32Array;
+    state.forEach((e, i) => {
+      // Faster near the opening; once they reach its rim they start again further out.
+      e.a += dt * e.s * (0.25 + 1.6 / e.r);
+      e.r -= dt * e.s * 0.45;
+      if (e.r < 1.85) e.r = 4.5 + ((i * 0.618) % 1) * 2;
+      arr.set([Math.cos(e.a) * e.r, Math.sin(e.a) * e.r * 0.85, e.z], i * 3);
+    });
+    geometry.attributes.position.needsUpdate = true;
+  });
+
+  return (
+    <Billboard>
+      <points geometry={geometry} raycast={() => null}>
+        <pointsMaterial ref={mat} map={dot} size={0.085} sizeAttenuation color="#E09A6E" transparent opacity={0} depthWrite={false} blending={THREE.AdditiveBlending} />
+      </points>
+    </Billboard>
   );
 }
