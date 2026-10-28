@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import type { Affinity } from '@/data/experience';
 
@@ -32,6 +32,16 @@ export function ExperienceCanvasLoader({ onModeChange, ...sceneProps }: Experien
   const [mode, setMode] = useState<SkyMode>('checking');
   const [isCoarsePointer, setIsCoarsePointer] = useState(false);
   const [shown, setShown] = useState(false);
+  // Drawing stops while the sky is scrolled out of view (the browser already pauses hidden tabs).
+  const box = useRef<HTMLDivElement>(null);
+  const [onScreen, setOnScreen] = useState(true);
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([entry]) => setOnScreen(entry.isIntersecting), { threshold: 0 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [mode]);
 
   useEffect(() => {
     setIsCoarsePointer(window.matchMedia('(pointer: coarse)').matches);
@@ -45,9 +55,10 @@ export function ExperienceCanvasLoader({ onModeChange, ...sceneProps }: Experien
   if (mode !== '3d') return null;
 
   return (
-    <div className={`absolute inset-0 transition-opacity duration-1000 ${shown ? 'opacity-100' : 'opacity-0'}`}>
+    <div ref={box} className={`absolute inset-0 transition-opacity duration-1000 ${shown ? 'opacity-100' : 'opacity-0'}`}>
       <SkyScene
         {...sceneProps}
+        paused={!onScreen}
         isCoarsePointer={isCoarsePointer}
         onReady={() => {
           setShown(true);

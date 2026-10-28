@@ -42,7 +42,18 @@ export interface Project {
   featuredOrder?: number;
 }
 
+/** One dated #public log line from Pulse's version 2 export, across all public projects. */
+export interface ProjectUpdate {
+  /** The public row's name. */
+  project: string;
+  href: string;
+  date: string; // YYYY-MM-DD
+  text: string;
+}
+
 export interface ProjectsFile {
   categories: string[];
   projects: Project[];
+  /** Version 2 only; empty for version 1. */
+  updates?: ProjectUpdate[];
 }

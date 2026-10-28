@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
-import { Billboard, Html, Line } from '@react-three/drei';
+import { Billboard, Html, Line, PerformanceMonitor } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import { projects } from '@/data/projects';
@@ -20,12 +20,19 @@ interface SkySceneProps {
   /** A click on empty sky. */
   onBack: () => void;
   onReady: () => void;
+  /** Off screen (scrolled past): stop drawing frames. */
+  paused?: boolean;
 }
 
-export function SkyScene({ isCoarsePointer, onReady, ...rest }: SkySceneProps) {
+export function SkyScene({ isCoarsePointer, onReady, paused = false, ...rest }: SkySceneProps) {
+  // Quality follows how the device actually copes: resolution steps down while frames are slow, and if it keeps
+  // struggling, bloom and some stars are dropped for the rest of the visit.
+  const [dpr, setDpr] = useState(isCoarsePointer ? 1.5 : 2);
+  const [lowPower, setLowPower] = useState(false);
   return (
     <Canvas
-      dpr={[1, isCoarsePointer ? 1.5 : 2]}
+      dpr={dpr}
+      frameloop={paused ? 'never' : 'always'}
       gl={{ antialias: !isCoarsePointer }}
       camera={{ position: [2, -1.6, 24], fov: 40, near: 0.1, far: 200 }}
       // The sky fills the first screen, so a vertical swipe on it has to scroll the page.
@@ -33,7 +40,16 @@ export function SkyScene({ isCoarsePointer, onReady, ...rest }: SkySceneProps) {
       onCreated={() => onReady()}
       onPointerMissed={() => rest.onBack()}
     >
-      <SkyContent isCoarsePointer={isCoarsePointer} {...rest} />
+      <PerformanceMonitor
+        onDecline={() => setDpr((d) => Math.max(1, d - 0.5))}
+        onIncline={() => setDpr((d) => Math.min(isCoarsePointer ? 1.5 : 2, d + 0.25))}
+        flipflops={3}
+        onFallback={() => {
+          setDpr(1);
+          setLowPower(true);
+        }}
+      />
+      <SkyContent isCoarsePointer={isCoarsePointer} lowPower={lowPower} {...rest} />
     </Canvas>
   );
 }
@@ -54,8 +70,9 @@ function SkyContent({
   highlightAffinity,
   highlightId,
   isCoarsePointer,
+  lowPower,
   onSelect,
-}: Omit<SkySceneProps, 'onReady'>) {
+}: Omit<SkySceneProps, 'onReady' | 'paused'> & { lowPower: boolean }) {
   const layout = useMemo(() => layoutSky(projects), []);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const { size } = useThree();
@@ -83,7 +100,7 @@ function SkyContent({
       <pointLight position={[-8, 6, 14]} intensity={1.2} color={SKY_COLORS.starlight} distance={80} />
 
       <CameraRig focus={focus} rest={rest} wide={wideness(aspect)} />
-      <Starfield count={isCoarsePointer ? 500 : 1100} dimmed={eclipse || selectedId !== null} />
+      <Starfield count={lowPower ? 350 : isCoarsePointer ? 500 : 1100} dimmed={eclipse || selectedId !== null} />
 
       {layout.links.map((link) => {
         const from = placed.get(link.from);
@@ -118,9 +135,11 @@ function SkyContent({
         return star.featured ? <FeaturedStar key={star.id} {...common} /> : <QuietStar key={star.id} {...common} />;
       })}
 
-      <EffectComposer>
-        <Bloom intensity={isCoarsePointer ? 0.6 : 0.85} luminanceThreshold={0.22} luminanceSmoothing={0.4} />
-      </EffectComposer>
+      {!lowPower && (
+        <EffectComposer>
+          <Bloom intensity={isCoarsePointer ? 0.6 : 0.85} luminanceThreshold={0.22} luminanceSmoothing={0.4} />
+        </EffectComposer>
+      )}
     </>
   );
 }

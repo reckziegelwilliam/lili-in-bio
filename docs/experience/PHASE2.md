@@ -33,3 +33,13 @@ Then: save an optimized poster (and optionally a short muted clip) under `public
 - **Shared.** One round-point texture for every point cloud (`useDotTexture`) and one progress helper (`stepProgress`).
 
 Waiting on media for both: a recording of longsignal.app for Longsignal; for Ashwake, real footage and a decision on the "in Unreal" blurb (the current game is the Godot proving ground).
+
+# Phases 4–5 — started (no media needed)
+
+- **Performance.** The sky stops drawing while it's scrolled out of view (IntersectionObserver → `frameloop="never"`). drei's `PerformanceMonitor` steps resolution down while frames are slow and back up when they recover; if a device keeps struggling, bloom and most background stars are dropped for the rest of the visit.
+- **Media-first project pages.** When a featured project has a poster and alt text in `data/experience.ts`, its `/projects/<slug>` page leads with it (video with controls if set).
+- **Lately.** The site reads Pulse's version 2 `updates` (dated `#public` log lines) and shows the newest six under the index, linking featured projects to their pages. Hidden while there are none, so it only appears once Pulse publishes a version 2 file with updates.
+
+Checked with a simulated version 2 file and a temporary poster setting (both restored): updates list newest first; the project page shows the poster.
+
+Not done: Now, Outreach and About from the version 2 export; one small surprise (EGG-01); retiring the parity test and the old graph code (after the first Publish).

@@ -3,6 +3,7 @@
 import { useEffect, useReducer, useRef, useState } from 'react';
 import { SkipToContent } from '@/components/AccessibilityUtils';
 import { ExperienceShell } from '@/components/experience/ExperienceShell';
+import { Lately } from '@/components/site/Lately';
 import { ProjectRows } from '@/components/site/ProjectRows';
 import type { Affinity } from '@/data/experience';
 import { initialSkyState, skyReducer } from '@/lib/experience/state';
@@ -47,6 +48,7 @@ export default function Home() {
       />
 
       <ProjectRows snapshot={snapshot} highlightedName={sky.selected} highlightAffinity={highlightAffinity} />
+      <Lately />
 
       <footer className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 pb-10 pt-6 text-sm text-[#ECE8DF]/60 sm:px-10">
         <span>Los Angeles</span>

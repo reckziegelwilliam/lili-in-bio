@@ -58,6 +58,15 @@ describe('parseProjectsFile', () => {
     expect(parseProjectsFile(raw).projects.length).toBe(parseProjectsFile(valid()).projects.length);
   });
 
+  it("reads version 2's updates, and rejects a malformed one", () => {
+    const raw = valid();
+    raw.version = 2;
+    raw.updates = [{ project: 'word box', href: 'https://words.example', date: '2026-10-01', text: 'Chapter 3' }];
+    expect(parseProjectsFile(raw).updates).toEqual(raw.updates);
+    raw.updates = [{ project: 'word box', href: 'https://words.example', date: 'October', text: 'Chapter 3' }];
+    expect(() => parseProjectsFile(raw)).toThrow('updates[0].date must be YYYY-MM-DD');
+  });
+
   it('rejects another version', () => {
     const raw = valid();
     raw.version = 3;

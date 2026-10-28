@@ -1,4 +1,5 @@
 import {
+  type ProjectUpdate,
   type Project,
   type ProjectImprovement,
   type ProjectSubLink,
@@ -126,7 +127,20 @@ export function parseProjectsFile(raw: unknown): ProjectsFile {
     return project;
   });
 
-  return { categories, projects };
+  // Version 2's site-wide updates (Pulse's #public log lines). Now, Outreach and About aren't read yet.
+  const updates: ProjectUpdate[] = [];
+  if (raw.version === 2 && raw.updates !== undefined) {
+    if (!Array.isArray(raw.updates)) fail('updates must be an array');
+    raw.updates.forEach((u: unknown, i: number) => {
+      const where = `updates[${i}]`;
+      if (!isObj(u)) fail(`${where} must be an object`);
+      const date = text(u, 'date', where);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) fail(`${where}.date must be YYYY-MM-DD`);
+      updates.push({ project: text(u, 'project', where), href: httpsUrl(u, 'href', where), date, text: text(u, 'text', where) });
+    });
+  }
+
+  return { categories, projects, updates };
 }
 
 /** Projects grouped in category order; categories with no projects are left out. */
