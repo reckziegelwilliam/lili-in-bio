@@ -8,6 +8,7 @@ import { projectHref } from '@/lib/projects/links';
 import { matchesAudience, orderForVisitor } from '@/lib/projects/audience';
 import { projectClickProps, trackEvent } from '@/lib/utils/plausible';
 import type { VisitorSnapshot } from '@/types/visitor';
+import { ArrowUpRight } from 'lucide-react';
 
 interface ProjectRowsProps {
   snapshot?: VisitorSnapshot | null;
@@ -56,7 +57,7 @@ export function ProjectRows({ snapshot, highlightedName = null, highlightAffinit
           <span className="col-span-3 col-start-1 row-start-2 text-sm text-[#ECE8DF]/70 sm:col-span-1 sm:col-start-3 sm:row-start-1 sm:text-base">
             {project.description}
           </span>
-          <span aria-hidden="true" className="text-[#ECE8DF]/50 transition-transform group-hover:translate-x-0.5 group-hover:text-white">↗</span>
+          <ArrowUpRight aria-hidden="true" className="h-4 w-4 text-[#ECE8DF]/50 transition-transform group-hover:translate-x-0.5 group-hover:text-white" />
         </a>
       </li>
     );

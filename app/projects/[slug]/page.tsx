@@ -6,6 +6,7 @@ import { getCategoryColor } from '@/lib/graph/categoryColors';
 import { featuredProjects } from '@/data/projects';
 import { outsideLink } from '@/lib/projects/links';
 import { FEATURED_EXPERIENCE } from '@/data/experience';
+import { ArrowLeft, ArrowUpRight } from 'lucide-react';
 
 interface PageProps {
   params: { slug: string };
@@ -54,7 +55,7 @@ export default function ProjectPage({ params }: PageProps) {
       <SiteHeader />
       <article className="mx-auto w-full max-w-4xl px-6 pb-20 pt-8 sm:px-10 sm:pt-14">
         <Link href="/" className="text-sm text-white/60 transition-colors hover:text-white">
-          ← back to the sky
+          <ArrowLeft className="mr-1.5 inline-block h-[1em] w-[1em] align-[-0.12em]" aria-hidden="true" />back to the sky
         </Link>
         {hasMedia && media && (
           <figure className="mt-8 overflow-hidden rounded-2xl border border-white/10">
@@ -81,7 +82,7 @@ export default function ProjectPage({ params }: PageProps) {
             rel="noopener noreferrer"
             className="mt-8 inline-flex items-center gap-3 border-b border-white/30 pb-3 text-lg transition-colors hover:border-white"
           >
-            open {project.name} <span aria-hidden="true">↗</span>
+            open {project.name} <ArrowUpRight className="h-[1.1em] w-[1.1em]" aria-hidden="true" />
           </a>
         )}
 
