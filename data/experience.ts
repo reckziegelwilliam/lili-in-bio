@@ -33,6 +33,11 @@ export const CATEGORY_AFFINITY: Record<string, Affinity> = {
   Games: 'worlds',
 };
 
+/** Where a project sits when its Pulse category would put it somewhere else (Pulse's "Directory" covers both a mutual-aid map and a word-game site). Keyed by lowercase name. */
+export const AFFINITY_OVERRIDE: Record<string, Affinity> = {
+  'this might be fun': 'worlds',
+};
+
 export type Motif = 'contour' | 'orbit' | 'eclipse';
 
 export interface FeaturedExperience {

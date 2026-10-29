@@ -7,7 +7,7 @@ import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import { projects } from '@/data/projects';
 import { SKY_COLORS, type Affinity, type Vec3Tuple } from '@/data/experience';
-import { layoutSky, placeForAspect, skyCamera, wideness, type SkyStar } from '@/lib/experience/layout';
+import { layoutSky, placeForAspect, planLabels, skyCamera, wideness, type LabelPlan, type SkyStar } from '@/lib/experience/layout';
 
 interface SkySceneProps {
   selectedId: string | null;
@@ -80,6 +80,7 @@ function SkyContent({
   const aspect = size.width / Math.max(size.height, 1);
   const placed = useMemo(() => new Map(layout.stars.map((s) => [s.id, placeForAspect(s.position, aspect)])), [layout, aspect]);
   const rest = skyCamera(aspect);
+  const labels = useMemo(() => planLabels(layout.stars, aspect, size), [layout, aspect, size.width, size.height]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const byId = useMemo(() => new Map(layout.stars.map((s) => [s.id, s])), [layout]);
   const lit = hoveredId ?? highlightId;
@@ -132,6 +133,7 @@ function SkyContent({
           coarse: isCoarsePointer,
           onHover: setHoveredId,
           onSelect,
+          labelPlan: labels.get(star.id),
         };
         return star.featured ? <FeaturedStar key={star.id} {...common} /> : <QuietStar key={star.id} {...common} />;
       })}
@@ -210,6 +212,7 @@ function Starfield({ count, dimmed }: { count: number; dimmed: boolean }) {
 }
 
 interface StarProps {
+  labelPlan?: LabelPlan;
   star: SkyStar;
   position: Vec3Tuple;
   hovered: boolean;
@@ -238,12 +241,17 @@ function hitHandlers(star: SkyStar, onHover: StarProps['onHover'], onSelect: Sta
   };
 }
 
-/** `offset`: how far right of the star (in scene units) the label starts, so it clears the star's rings or corona. */
-function Label({ text, strength, featured, offset = 0 }: { text: string; strength: number; featured: boolean; offset?: number }) {
+/** `offset`: how far right of the star (in scene units) the label starts, so it clears the star's rings or corona. `plan` moves it left, below or off its neighbours (see planLabels). */
+function Label({ text, strength, featured, offset = 0, plan }: { text: string; strength: number; featured: boolean; offset?: number; plan?: LabelPlan }) {
+  const side = plan?.side ?? 'right';
+  const below = side === 'below';
+  const x = below ? 0 : side === 'left' ? -(featured ? offset : 0) : offset;
+  const y = below ? -Math.max(offset * 0.95, 1.7) : 0;
+  const shift = below ? 'translate(-50%, 0)' : side === 'left' ? `translate(calc(-100% - ${featured ? 8 : 14}px), calc(-50% + ${plan?.dy ?? 0}px))` : `translate(${featured ? 8 : 14}px, calc(-50% + ${plan?.dy ?? 0}px))`;
   return (
-    <Html position={[offset, 0, 0]} style={{ pointerEvents: 'none' }} zIndexRange={[10, 0]}>
+    <Html position={[x, y, 0]} style={{ pointerEvents: 'none' }} zIndexRange={[10, 0]}>
       <div
-        style={{ opacity: strength, transform: `translate(${featured ? 8 : 14}px, -50%)` }}
+        style={{ opacity: strength, transform: shift }}
         className={`whitespace-nowrap transition-opacity duration-200 ${
           featured ? 'text-[15px] text-[#ECE8DF]' : 'text-[11px] text-[#ECE8DF]'
         }`}
@@ -254,7 +262,7 @@ function Label({ text, strength, featured, offset = 0 }: { text: string; strengt
   );
 }
 
-function QuietStar({ star, position, hovered, dimmed, selected, coarse, onHover, onSelect }: StarProps) {
+function QuietStar({ star, position, labelPlan, hovered, dimmed, selected, coarse, onHover, onSelect }: StarProps) {
   const mat = useRef<THREE.MeshStandardMaterial>(null);
   const body = useRef<THREE.Mesh>(null);
   useFrame((_, dt) => {
@@ -274,12 +282,12 @@ function QuietStar({ star, position, hovered, dimmed, selected, coarse, onHover,
         <sphereGeometry args={[0.15, 16, 16]} />
         <meshStandardMaterial ref={mat} color={star.color} emissive={star.color} emissiveIntensity={1.1} />
       </mesh>
-      <Label text={star.project.name} strength={hovered || selected ? 1 : dimmed ? 0.15 : 0.5} featured={false} />
+      <Label text={star.project.name} strength={hovered || selected ? 1 : dimmed ? 0.15 : 0.5} featured={false} plan={labelPlan} />
     </group>
   );
 }
 
-function FeaturedStar({ star, position, hovered, dimmed, selected, coarse, onHover, onSelect }: StarProps) {
+function FeaturedStar({ star, position, labelPlan, hovered, dimmed, selected, coarse, onHover, onSelect }: StarProps) {
   const active = hovered || selected;
   const motif = star.featured?.motif;
   return (
@@ -295,7 +303,7 @@ function FeaturedStar({ star, position, hovered, dimmed, selected, coarse, onHov
       {motif === 'eclipse' && <EclipseStar color={star.color} active={active} dimmed={dimmed} opened={selected} />}
       {motif === 'eclipse' && <EmberVortex open={selected} coarse={coarse} />}
       {/* Selected: the focus panel names it. */}
-      <Label text={star.project.name} strength={selected ? 0 : active ? 1 : dimmed ? 0.25 : 0.88} featured offset={motif === 'eclipse' ? 1.05 : 2.05} />
+      <Label text={star.project.name} strength={selected ? 0 : active ? 1 : dimmed ? 0.25 : 0.88} featured offset={motif === 'eclipse' ? 1.05 : 2.05} plan={labelPlan} />
     </group>
   );
 }

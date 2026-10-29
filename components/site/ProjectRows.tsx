@@ -37,7 +37,7 @@ export function ProjectRows({ snapshot, highlightedName = null, highlightAffinit
     // Featured projects open their own page, which has the link out; the rest go straight to the project.
     const href = projectHref(project);
     const external = /^https?:\/\//.test(href);
-    const affinity = affinityOf(project.category);
+    const affinity = affinityOf(project.category, project.name);
     const inGroup = highlightAffinity !== null && affinity === highlightAffinity;
     const emphasised = highlightedName === project.name || matchesAudience(project, snapshot?.source) || inGroup;
     const color = (project.slug && FEATURED_EXPERIENCE[project.slug]?.color) || groupColor.get(affinity);
@@ -76,7 +76,7 @@ export function ProjectRows({ snapshot, highlightedName = null, highlightAffinit
         <>
           <h3 className="mb-2 mt-14 text-base text-[#ECE8DF]/80">more work</h3>
           {AFFINITIES.map((group) => {
-            const inGroup = more.filter((p) => affinityOf(p.category) === group.id);
+            const inGroup = more.filter((p) => affinityOf(p.category, p.name) === group.id);
             if (inGroup.length === 0) return null;
             return (
               <div key={group.id} className="mt-8">
