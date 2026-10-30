@@ -8,6 +8,7 @@ import { projectHref } from '@/lib/projects/links';
 import { matchesAudience, orderForVisitor } from '@/lib/projects/audience';
 import { projectClickProps, trackEvent } from '@/lib/utils/plausible';
 import type { VisitorSnapshot } from '@/types/visitor';
+import { ArrowUpRight } from 'lucide-react';
 
 interface ProjectRowsProps {
   snapshot?: VisitorSnapshot | null;
@@ -36,7 +37,7 @@ export function ProjectRows({ snapshot, highlightedName = null, highlightAffinit
     // Featured projects open their own page, which has the link out; the rest go straight to the project.
     const href = projectHref(project);
     const external = /^https?:\/\//.test(href);
-    const affinity = affinityOf(project.category);
+    const affinity = affinityOf(project.category, project.name);
     const inGroup = highlightAffinity !== null && affinity === highlightAffinity;
     const emphasised = highlightedName === project.name || matchesAudience(project, snapshot?.source) || inGroup;
     const color = (project.slug && FEATURED_EXPERIENCE[project.slug]?.color) || groupColor.get(affinity);
@@ -56,7 +57,7 @@ export function ProjectRows({ snapshot, highlightedName = null, highlightAffinit
           <span className="col-span-3 col-start-1 row-start-2 text-sm text-[#ECE8DF]/70 sm:col-span-1 sm:col-start-3 sm:row-start-1 sm:text-base">
             {project.description}
           </span>
-          <span aria-hidden="true" className="text-[#ECE8DF]/50 transition-transform group-hover:translate-x-0.5 group-hover:text-white">↗</span>
+          <ArrowUpRight aria-hidden="true" className="h-4 w-4 text-[#ECE8DF]/50 transition-transform group-hover:translate-x-0.5 group-hover:text-white" />
         </a>
       </li>
     );
@@ -75,7 +76,7 @@ export function ProjectRows({ snapshot, highlightedName = null, highlightAffinit
         <>
           <h3 className="mb-2 mt-14 text-base text-[#ECE8DF]/80">more work</h3>
           {AFFINITIES.map((group) => {
-            const inGroup = more.filter((p) => affinityOf(p.category) === group.id);
+            const inGroup = more.filter((p) => affinityOf(p.category, p.name) === group.id);
             if (inGroup.length === 0) return null;
             return (
               <div key={group.id} className="mt-8">

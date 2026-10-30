@@ -6,6 +6,7 @@ import { AFFINITIES } from '@/data/experience';
 import type { SkyStar } from '@/lib/experience/layout';
 import { outsideLink, projectHref } from '@/lib/projects/links';
 import { projectClickProps, trackEvent } from '@/lib/utils/plausible';
+import { ArrowRight, ArrowUpRight } from 'lucide-react';
 
 interface FocusPanelProps {
   star: SkyStar;
@@ -55,7 +56,7 @@ export const FocusPanel = forwardRef<HTMLHeadingElement, FocusPanelProps>(functi
       <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3 text-sm">
         {project.slug ? (
           <Link href={projectHref(project)} onClick={() => track(project.name)} className="rounded-full bg-[#ECE8DF] px-4 py-2 font-medium text-[#060914] hover:bg-white">
-            enter {project.name} →
+            enter {project.name} <ArrowRight className="ml-1 inline-block h-[1em] w-[1em] align-[-0.12em]" aria-hidden="true" />
           </Link>
         ) : null}
         {site && (
@@ -66,7 +67,7 @@ export const FocusPanel = forwardRef<HTMLHeadingElement, FocusPanelProps>(functi
             onClick={() => track(project.slug ? `${project.name} - site` : project.name)}
             className={project.slug ? 'text-[#ECE8DF]/80 underline decoration-white/30 underline-offset-4 hover:text-white' : 'rounded-full bg-[#ECE8DF] px-4 py-2 font-medium text-[#060914] hover:bg-white'}
           >
-            open {project.slug ? 'site' : project.name} ↗
+            open {project.slug ? 'site' : project.name} <ArrowUpRight className="ml-0.5 inline-block h-[1em] w-[1em] align-[-0.12em]" aria-hidden="true" />
           </a>
         )}
         <button type="button" onClick={onBack} className="ml-auto text-[#ECE8DF]/60 hover:text-white">

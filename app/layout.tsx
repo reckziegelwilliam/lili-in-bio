@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
-import { DM_Sans, Instrument_Serif } from "next/font/google";
+import { DM_Sans, Fraunces } from "next/font/google";
 import "./globals.css";
 
 const plausibleDomain = process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN || "lili-in.bio";
@@ -11,10 +11,11 @@ const dmSans = DM_Sans({
   variable: "--font-dm-sans",
 });
 
-// For the few phrases that should read as voice rather than interface ("curious everywhere.", project names).
-const instrumentSerif = Instrument_Serif({
+// Fraunces: soft, variable serif for the few phrases that should read as voice ("curious everywhere.", project names).
+const displayFont = Fraunces({
   subsets: ["latin"],
-  weight: "400",
+  style: ["normal", "italic"],
+  axes: ["opsz", "SOFT"],
   display: "swap",
   variable: "--font-display",
 });
@@ -67,7 +68,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${dmSans.variable} ${instrumentSerif.variable}`}>
+    <html lang="en" className={`${dmSans.variable} ${displayFont.variable}`}>
       <body className={`${dmSans.className} antialiased`}>
         <Script
           defer

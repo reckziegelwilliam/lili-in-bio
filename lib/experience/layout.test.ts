@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { affinityOf, layoutSky, placeForAspect, skyCamera } from './layout';
+import { affinityOf, layoutSky, placeForAspect, planLabels, skyCamera } from './layout';
 import { skyReducer, initialSkyState } from './state';
 import { FEATURED_EXPERIENCE } from '@/data/experience';
 import type { Project } from '@/data/projectTypes';
@@ -46,6 +46,8 @@ describe('layoutSky', () => {
     expect(affinityOf('Disaster Recovery')).toBe('climate');
     expect(affinityOf('Games')).toBe('worlds');
     expect(affinityOf('Something New')).toBe('tools');
+    expect(affinityOf('Directory', 'this might be fun')).toBe('worlds');
+    expect(affinityOf('Directory', 'wefrigerator')).toBe('climate');
   });
 
   it("joins quieter stars to their group's featured star only", () => {
@@ -71,5 +73,32 @@ describe('skyReducer', () => {
     expect(skyReducer(focused, { type: 'select', id: 'Ashwake' })).toEqual({ mode: 'focused', selected: 'Ashwake' });
     expect(skyReducer(focused, { type: 'back' })).toBe(initialSkyState);
     expect(skyReducer(initialSkyState, { type: 'back' })).toBe(initialSkyState);
+  });
+});
+
+describe('planLabels', () => {
+  const phone = { width: 375, height: 812 };
+  const stars = layoutSky(
+    ['Longsignal', 'TerraTrace', 'Ashwake', 'oesis', 'wildready (readyforthewild.app)', 'this might be fun', 'recovery navigator', 'wefrigerator', 'drip-e', 'liams.log', 'artistOS'].map((name) => ({
+      name,
+      description: '',
+      href: 'https://example.com',
+      category: name === 'Ashwake' ? 'Games' : name === 'Longsignal' ? 'Tools' : 'Climate & Environment',
+      enabled: true,
+      slug: ['Longsignal', 'TerraTrace', 'Ashwake'].includes(name) ? name.toLowerCase() : undefined,
+    })) as never,
+  ).stars;
+
+  it('puts featured names below their stars on a phone, and beside them on desktop', () => {
+    const tall = planLabels(stars, phone.width / phone.height, phone);
+    expect(tall.get('Longsignal')?.side).toBe('below');
+    const wide = planLabels(stars, 1.8, { width: 1440, height: 800 });
+    expect(wide.get('Longsignal')?.side).toBe('right');
+  });
+
+  it('is deterministic and gives every star a plan', () => {
+    const a = planLabels(stars, 0.46, phone);
+    expect(Array.from(a.keys()).sort()).toEqual(stars.map((s) => s.id).sort());
+    expect(Array.from(planLabels(stars, 0.46, phone))).toEqual(Array.from(a));
   });
 });

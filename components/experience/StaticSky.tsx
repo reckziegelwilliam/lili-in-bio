@@ -1,6 +1,6 @@
 import { projects } from '@/data/projects';
 import { SKY_COLORS } from '@/data/experience';
-import { layoutSky, placeForAspect, skyCamera } from '@/lib/experience/layout';
+import { layoutSky, placeForAspect, planLabels, skyCamera } from '@/lib/experience/layout';
 import type { Vec3Tuple } from '@/data/experience';
 
 // The sky as a still picture, drawn from the same layout as the 3D scene. It sits under the canvas, so it is what a
@@ -50,6 +50,10 @@ function SkyPicture({ aspect, className }: { aspect: number; className: string }
   const sx = (x: number) => x;
   const sy = (y: number) => -y;
   const font = aspect < 1 ? 1.4 : 1;
+  // Same label placement as the 3D scene, worked out for a nominal screen of this shape.
+  const H = 812;
+  const plans = planLabels(stars, aspect, { width: H * aspect, height: H });
+  const cam = skyCamera(aspect);
 
   return (
     <svg
@@ -91,15 +95,26 @@ function SkyPicture({ aspect, className }: { aspect: number; className: string }
             ) : (
               <circle r={s.featured ? 0.28 : 0.13} fill={s.color} />
             )}
-            <text
-              x={s.featured ? (motif === 'eclipse' ? 1.1 : 2.1) : 0.35}
-              y={0.12}
-              fontSize={(s.featured ? 0.42 : 0.3) * font}
-              fill={SKY_COLORS.starlight}
-              opacity={s.featured ? 0.9 : 0.5}
-            >
-              {s.project.name}
-            </text>
+            {(() => {
+              const plan = plans.get(s.id);
+              const side = plan?.side ?? 'right';
+              const unit = (2 * Math.tan((20 * Math.PI) / 180) * Math.max(cam.z - s.position[2], 1)) / H;
+              const dy = (plan?.dy ?? 0) * unit;
+              const below = side === 'below';
+              const x = below ? 0 : side === 'left' ? -0.35 : s.featured ? (motif === 'eclipse' ? 1.1 : 2.1) : 0.35;
+              return (
+                <text
+                  x={x}
+                  y={below ? Math.max(motif === 'eclipse' ? 1.7 : 1.95, 1.7) + 0.4 : 0.12 + dy}
+                  textAnchor={below ? 'middle' : side === 'left' ? 'end' : 'start'}
+                  fontSize={(s.featured ? 0.42 : 0.3) * font}
+                  fill={SKY_COLORS.starlight}
+                  opacity={s.featured ? 0.9 : 0.5}
+                >
+                  {s.project.name}
+                </text>
+              );
+            })()}
           </g>
         );
       })}

@@ -11,6 +11,7 @@ import { trackEvent } from '@/lib/utils/plausible';
 import { ExperienceCanvasLoader, type SkyMode } from './ExperienceCanvasLoader';
 import { FocusPanel } from './FocusPanel';
 import { StaticSky } from './StaticSky';
+import { ArrowDown } from 'lucide-react';
 
 interface ExperienceShellProps {
   sky: SkyState;
@@ -152,7 +153,7 @@ export function ExperienceShell({ sky, dispatch, highlightAffinity, pinnedAffini
           })}
           <li>
             <a href="#index" className="text-[#ECE8DF]/60 transition-colors hover:text-white">
-              index ↓
+              index <ArrowDown className="ml-0.5 inline-block h-[1em] w-[1em] align-[-0.12em]" aria-hidden="true" />
             </a>
           </li>
         </ul>
